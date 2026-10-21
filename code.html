@@ -1,57 +1,52 @@
 <!DOCTYPE html>
-<html><head><meta charset="utf-8"><title>T53</title>
+<html><head><meta charset="utf-8"><title>T54</title>
 <style>body{font:14px Menlo,monospace;background:#111;color:#ddd;max-width:900px;margin:40px auto;padding:0 16px}
 pre{background:#1b1b1b;border:1px solid #333;border-radius:8px;padding:16px;white-space:pre-wrap;word-break:break-all}
 button{font:16px Menlo,monospace;background:#ff5252;color:#fff;border:none;border-radius:6px;padding:10px 18px;cursor:pointer;margin:8px 0}
 button:hover{background:#ff7a7a}</style></head>
 <body>
-<h2>T53 CLEAN COPY PAGE</h2>
+<h2>T54 CLEAN COPY PAGE</h2>
 <p>Copy the whole payload below (or click the button), paste into the playground, run once.</p>
 <button onclick="navigator.clipboard.writeText(document.getElementById(&quot;code&quot;).textContent).then(function(){this.textContent=&quot;COPIED - paste into playground&quot;;}.bind(this))">Copy code</button>
-<pre id="code">// T53 - LIVE API SURFACE ENUMERATION (pure read-only: lists the
-// API object&#x27;s own keys and their types; calls NOTHING).
+<pre id="code">// T54 - DATA PROPERTY DUMP (read-only: reads and prints the VALUES of
+// the non-function properties on window.oai; calls NO functions).
 (function () {
   var d = document;
   var box = d.createElement(&quot;div&quot;);
-  box.id = &quot;t53-box&quot;;
-  box.style.cssText = &quot;position:fixed;left:12px;bottom:12px;z-index:2147483647;font:12px Menlo,monospace;color:#ff5252;background:rgba(0,0,0,.85);border:1px solid #ff5252;border-radius:6px;padding:8px 10px;max-width:80vw;max-height:40vh;overflow:auto;white-space:pre-wrap;word-break:break-all&quot;;
+  box.id = &quot;t54-box&quot;;
+  box.style.cssText = &quot;position:fixed;left:12px;bottom:12px;z-index:2147483647;font:12px Menlo,monospace;color:#ff5252;background:rgba(0,0,0,.85);border:1px solid #ff5252;border-radius:6px;padding:8px 10px;max-width:80vw;max-height:50vh;overflow:auto;white-space:pre-wrap;word-break:break-all&quot;;
   d.body.appendChild(box);
 
-  var names = [&quot;oai&quot;, &quot;openai&quot;, &quot;webplus&quot;];
-  var lines = [];
-  var api = null;
-  for (var i = 0; i &lt; names.length; i++) {
+  function show(v) {
     try {
-      var cand = window[names[i]];
-      if (cand &amp;&amp; typeof cand === &quot;object&quot;) {
-        api = cand;
-        lines.push(&quot;window.&quot; + names[i] + &quot; EXISTS&quot;);
-        break;
-      }
-    } catch (e) {}
+      if (v === null) return &quot;null&quot;;
+      var s = typeof v === &quot;object&quot; ? JSON.stringify(v) : String(v);
+      if (s === undefined) s = String(v);
+      if (s.length &gt; 400) s = s.slice(0, 400) + &quot;...&lt;truncated &quot; + s.length + &quot; chars&gt;&quot;;
+      return &quot;(&quot; + typeof v + &quot;) &quot; + s;
+    } catch (e) {
+      return &quot;(unreadable: &quot; + e + &quot;)&quot;;
+    }
   }
+
+  var api = window.oai || window.openai || window.webplus;
+  var lines = [];
   if (!api) {
-    lines.push(&quot;no API object on window (oai/openai/webplus)&quot;);
+    lines.push(&quot;no API object found&quot;);
   } else {
     var keys = Object.keys(api);
-    lines.push(&quot;API keys (&quot; + keys.length + &quot;):&quot;);
     for (var k = 0; k &lt; keys.length; k++) {
-      var t;
-      try { t = typeof api[keys[k]]; } catch (e) { t = &quot;unreadable&quot;; }
-      lines.push(&quot;  &quot; + keys[k] + &quot; : &quot; + t);
-    }
-    // also any nested sub-objects (one level)
-    for (var k2 = 0; k2 &lt; keys.length; k2++) {
+      var key = keys[k];
       try {
-        var v = api[keys[k2]];
-        if (v &amp;&amp; typeof v === &quot;object&quot;) {
-          var sub = Object.keys(v);
-          if (sub.length) lines.push(&quot;  .&quot; + keys[k2] + &quot; sub-keys: &quot; + sub.join(&quot;,&quot;));
-        }
-      } catch (e) {}
+        var v = api[key];
+        if (typeof v === &quot;function&quot;) continue; // functions not called
+        lines.push(key + &quot; = &quot; + show(v));
+      } catch (e) {
+        lines.push(key + &quot; = (threw: &quot; + e + &quot;)&quot;);
+      }
     }
   }
-  var out = &quot;T53 API SURFACE (no calls made):\n&quot; + lines.join(&quot;\n&quot;);
+  var out = &quot;T54 DATA DUMP (no calls made):\n&quot; + lines.join(&quot;\n&quot;);
   box.textContent = out;
   try { console.log(out); } catch (e) {}
 })();
