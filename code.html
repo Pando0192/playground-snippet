@@ -1,54 +1,55 @@
 <!DOCTYPE html>
-<html><head><meta charset="utf-8"><title>T54</title>
+<html><head><meta charset="utf-8"><title>T55</title>
 <style>body{font:14px Menlo,monospace;background:#111;color:#ddd;max-width:900px;margin:40px auto;padding:0 16px}
 pre{background:#1b1b1b;border:1px solid #333;border-radius:8px;padding:16px;white-space:pre-wrap;word-break:break-all}
 button{font:16px Menlo,monospace;background:#ff5252;color:#fff;border:none;border-radius:6px;padding:10px 18px;cursor:pointer;margin:8px 0}
 button:hover{background:#ff7a7a}</style></head>
 <body>
-<h2>T54 CLEAN COPY PAGE</h2>
+<h2>T55 CLEAN COPY PAGE</h2>
 <p>Copy the whole payload below (or click the button), paste into the playground, run once.</p>
 <button onclick="navigator.clipboard.writeText(document.getElementById(&quot;code&quot;).textContent).then(function(){this.textContent=&quot;COPIED - paste into playground&quot;;}.bind(this))">Copy code</button>
-<pre id="code">// T54 - DATA PROPERTY DUMP (read-only: reads and prints the VALUES of
-// the non-function properties on window.oai; calls NO functions).
+<pre id="code">// T55 - requestDisplayMode LIVE PROBE (inert: asks the host to expand
+// this widget to fullscreen display mode; no data, no navigation).
+// Statics (chunk 743845 current @72871): requestDisplayMode is wired
+// directly to the display controller (NOT the tool-stub path):
+//   mode &quot;fullscreen&quot; | &quot;inline&quot; -&gt; if widget active &amp;&amp; canExpand,
+//   the host switches the widget to fullscreen display.
+// requestDisplayMode is in the widget-side gesture set -&gt; the
+// navigator.userActivation override (same as T49/T52) is applied.
 (function () {
+  try {
+    Object.defineProperty(navigator, &quot;userActivation&quot;, {
+      get: function () { return { isActive: true, hasBeenActive: true }; },
+      configurable: true
+    });
+  } catch (e) {}
+
   var d = document;
   var box = d.createElement(&quot;div&quot;);
-  box.id = &quot;t54-box&quot;;
-  box.style.cssText = &quot;position:fixed;left:12px;bottom:12px;z-index:2147483647;font:12px Menlo,monospace;color:#ff5252;background:rgba(0,0,0,.85);border:1px solid #ff5252;border-radius:6px;padding:8px 10px;max-width:80vw;max-height:50vh;overflow:auto;white-space:pre-wrap;word-break:break-all&quot;;
+  box.id = &quot;t55-box&quot;;
+  box.style.cssText = &quot;position:fixed;left:12px;bottom:12px;z-index:2147483647;font:12px Menlo,monospace;color:#ff5252;background:rgba(0,0,0,.85);border:1px solid #ff5252;border-radius:6px;padding:8px 10px;max-width:80vw;white-space:pre-wrap;word-break:break-all&quot;;
+  box.textContent = &quot;T55 (inert) - requesting fullscreen display mode in 2s...&quot;;
   d.body.appendChild(box);
 
-  function show(v) {
+  setTimeout(function () {
+    var api = window.oai || window.openai || window.webplus;
+    if (!api || !api.requestDisplayMode) {
+      box.textContent = &quot;T55: requestDisplayMode not exposed. API keys: &quot; + (api ? Object.keys(api).join(&quot;, &quot;) : &quot;none&quot;);
+      return;
+    }
     try {
-      if (v === null) return &quot;null&quot;;
-      var s = typeof v === &quot;object&quot; ? JSON.stringify(v) : String(v);
-      if (s === undefined) s = String(v);
-      if (s.length &gt; 400) s = s.slice(0, 400) + &quot;...&lt;truncated &quot; + s.length + &quot; chars&gt;&quot;;
-      return &quot;(&quot; + typeof v + &quot;) &quot; + s;
+      var r = api.requestDisplayMode({ mode: &quot;fullscreen&quot; });
+      var done = function (v) {
+        var s;
+        try { s = typeof v === &quot;object&quot; ? JSON.stringify(v) : String(v); } catch (e2) { s = String(v); }
+        box.textContent = &quot;T55 RESULT: &quot; + s + &quot;\n(watch the widget area - did it expand fullscreen? ESC or click out to exit)&quot;;
+      };
+      if (r &amp;&amp; typeof r.then === &quot;function&quot;) r.then(done, done);
+      else done(r);
     } catch (e) {
-      return &quot;(unreadable: &quot; + e + &quot;)&quot;;
+      box.textContent = &quot;T55 threw: &quot; + e;
     }
-  }
-
-  var api = window.oai || window.openai || window.webplus;
-  var lines = [];
-  if (!api) {
-    lines.push(&quot;no API object found&quot;);
-  } else {
-    var keys = Object.keys(api);
-    for (var k = 0; k &lt; keys.length; k++) {
-      var key = keys[k];
-      try {
-        var v = api[key];
-        if (typeof v === &quot;function&quot;) continue; // functions not called
-        lines.push(key + &quot; = &quot; + show(v));
-      } catch (e) {
-        lines.push(key + &quot; = (threw: &quot; + e + &quot;)&quot;);
-      }
-    }
-  }
-  var out = &quot;T54 DATA DUMP (no calls made):\n&quot; + lines.join(&quot;\n&quot;);
-  box.textContent = out;
-  try { console.log(out); } catch (e) {}
+  }, 2000);
 })();
 </pre>
 </body></html>
