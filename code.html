@@ -1,14 +1,17 @@
 <!DOCTYPE html>
 <html>
-<head><meta charset="utf-8"><title>T49c clean copy page</title></head>
+<head><meta charset="utf-8"><title>T49d clean copy page</title></head>
 <body style="font-family:monospace;background:#111;color:#ccc;padding:20px">
-<h2 style="color:#f33">T49c CLEAN COPY PAGE (gate calibration control: example.com) &mdash; click Copy, then paste into the playground editor</h2>
+<h2 style="color:#f33">T49d CLEAN COPY PAGE (does the gate follow redirects?) &mdash; click Copy, then paste into the playground editor</h2>
 <button id="copy" style="font-size:18px;padding:10px 20px">Copy code</button>
-<pre id="code" style="background:#000;color:#0f0;padding:12px;white-space:pre;overflow:auto">// T49c - gate calibration control: known-safe domain (Pluto Security research canary)
-// Re-verifies the baseline: T33 (days ago) showed example.com opening SILENTLY.
-// If example.com also shows the dialog NOW, today's T49a/T49b "dialog" results
-// are miscalibrated (per-session state / rate limit / gate change) and must be
-// reinterpreted. Inert: opens example.com, nothing else.
+<pre id="code" style="background:#000;color:#0f0;padding:12px;white-space:pre;overflow:auto">// T49d - does the server-side gate resolve redirects? (Pluto Security research canary)
+// tinyurl.com/yqp7ct redirects to https://example.com/ (the known server-SAFE
+// destination). If the gate checks only the PRESENTED host (tinyurl.com), this
+// dialogs (shortener not trusted). If the gate FOLLOWS the redirect and judges
+// the FINAL destination (example.com), this opens silently - proving the
+// checker resolves URLs server-side, which opens a new attack surface
+// (checker-fetch exfiltration / UA-differential redirects). Inert: opens
+// example.com at most.
 (function () {
   try {
     Object.defineProperty(navigator, "userActivation", {
@@ -17,29 +20,29 @@
     });
   } catch (e) {}
 
-  var URL_T49C = "https://example.com/";
+  var URL_T49D = "https://tinyurl.com/yqp7ct";
 
   var d = document;
   var box = d.createElement("div");
-  box.id = "t49c-box";
+  box.id = "t49d-box";
   box.style.cssText = "position:fixed;left:12px;bottom:12px;z-index:2147483647;font:12px Menlo,monospace;color:#ff5252;background:rgba(0,0,0,.85);border:1px solid #ff5252;border-radius:6px;padding:8px 10px;max-width:80vw;white-space:pre-wrap";
-  box.textContent = "T49c CONTROL (inert) - firing example.com in 1s...";
+  box.textContent = "T49d (inert) - firing tinyurl-&gt;example.com in 1s...";
   d.body.appendChild(box);
 
   setTimeout(function () {
     var api = window.oai || window.openai || window.webplus;
     if (!api || !api.openExternal) {
-      box.textContent = "T49c: no oai.openExternal API found";
+      box.textContent = "T49d: no oai.openExternal API found";
       return;
     }
     try {
-      api.openExternal({ href: URL_T49C });
+      api.openExternal({ href: URL_T49D });
       box.textContent =
-        "T49c FIRED: https://example.com/\n\n" +
-        "new tab opens SILENTLY = gate calibrated (baseline holds)\n" +
-        "dialog = baseline CHANGED - today's results must be reinterpreted";
+        "T49d FIRED: tinyurl.com/yqp7ct (-&gt; example.com)\n\n" +
+        "silent tab = gate FOLLOWS redirects (judges final destination)\n" +
+        "dialog = gate judges the presented host only";
     } catch (e) {
-      box.textContent = "T49c threw: " + e;
+      box.textContent = "T49d threw: " + e;
     }
   }, 1000);
 })();
