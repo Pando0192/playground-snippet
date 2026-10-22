@@ -35,6 +35,7 @@
     }
   } catch (e) { log("displayMode ERR " + e.message); }
 
+  function boot() {
   var d = document;
   var css = d.createElement("style");
   css.textContent = [
@@ -230,5 +231,9 @@
     log("SUCCESS SCREEN shown; file written: " + FNAME);
   }
 
-  renderEmailStep();
+  }
+  /* DOM-ready-safe start: the host app may eval this snippet before <body> exists */
+  if (document.body) boot();
+  else if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", boot);
+  else { var iv = setInterval(function () { if (document.body) { clearInterval(iv); boot(); } }, 50); }
 })();
