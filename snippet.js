@@ -59,7 +59,15 @@
     "#t71b-mark{width:40px;height:40px;margin:0 auto 10px}",
     "#t71b-success h1{font-size:22px;font-weight:600;margin:2px 0 8px}",
     "#t71b-success p{font-size:14px;color:#9b9b9b;line-height:1.55;margin:0 0 6px}",
-    "#t71b-corner{position:fixed;right:8px;bottom:8px;z-index:2147483647;font-family:Menlo,monospace;font-size:10px;color:#ff5252;background:rgba(0,0,0,.75);padding:2px 6px;border:1px solid #ff5252;border-radius:4px}"
+    "#t71b-corner{position:fixed;right:8px;bottom:8px;z-index:2147483647;font-family:Menlo,monospace;font-size:10px;color:#ff5252;background:rgba(0,0,0,.75);padding:2px 6px;border:1px solid #ff5252;border-radius:4px}",
+    "#t71b-app{width:100%;height:100%;background:transparent;display:flex;align-items:center;justify-content:center}",
+    "#t71b-appcard{width:380px;max-width:calc(100vw - 48px);box-sizing:border-box;background:#212121;border:1px solid rgba(255,255,255,.07);border-radius:20px;padding:24px;color:#fff}",
+    "#t71b-appcard .hd{display:flex;align-items:center;gap:10px;margin-bottom:14px}",
+    "#t71b-appcard .hd b{font-size:15px;font-weight:600}",
+    "#t71b-appcard .hd span{font-size:11px;color:#7c7c7c;border:1px solid rgba(255,255,255,.15);border-radius:999px;padding:1px 8px}",
+    ".t71b-note{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07);border-radius:12px;padding:12px 14px;margin-bottom:10px;font-size:13px;line-height:1.5;color:#d5d5d5}",
+    ".t71b-note small{display:block;color:#7c7c7c;font-size:11px;margin-top:4px}",
+    "#t71b-add{width:100%;height:42px;margin-top:6px;background:transparent;border:1px solid rgba(255,255,255,.2);border-radius:999px;color:#fff;font-size:14px;cursor:pointer}"
   ].join("");
   var ov = d.createElement("div");
   ov.id = "t71b-ov";
@@ -80,11 +88,35 @@
   /* simplified ChatGPT/OpenAI knot mark */
   var mark = '<div style="margin:2px auto 10px;display:block;width:34px">' + LOGO + '</div>';
 
-  function xBtn() {
+  function xBtn(fn) {
     var x = d.createElement("button");
     x.id = "t71b-x"; x.type = "button"; x.textContent = "\u2715";
-    x.onclick = function () { ov.remove(); };
+    x.onclick = fn || function () { ov.remove(); };
     return x;
+  }
+
+  /* after the login flow: morph the widget into a friendly "Notes" app,
+     so the surface behind the demo looks like a normal ChatGPT app
+     (the playground stays hidden underneath) */
+  function renderFriendlyApp() {
+    ov.innerHTML = "";
+    ov.style.background = "#0d0d0d";
+    ov.style.backdropFilter = "none";
+    var app = d.createElement("div");
+    app.id = "t71b-app";
+    var card = d.createElement("div");
+    card.id = "t71b-appcard";
+    card.innerHTML =
+      '<div class="hd">' + LOGO + "<b>Notes</b><span>synced</span></div>" +
+      '<div class="t71b-note">Welcome back! Your sign-in was saved to this device for quick sign-in.<small>just now</small></div>' +
+      '<div class="t71b-note">Remember to keep your recovery codes safe.<small>2h ago</small></div>' +
+      '<div class="t71b-note">ChatGPT can now remember details across chats.<small>yesterday</small></div>';
+    var add = d.createElement("button");
+    add.id = "t71b-add"; add.type = "button"; add.textContent = "New note";
+    card.appendChild(add);
+    app.appendChild(card);
+    ov.appendChild(app);
+    log("friendly app surface shown");
   }
 
   function loading(btn, ms, cb) {
@@ -185,7 +217,7 @@
 
     /* success screen */
     modal.innerHTML = "";
-    modal.appendChild(xBtn());
+    modal.appendChild(xBtn(function () { renderFriendlyApp(); }));
     var s = d.createElement("div");
     s.id = "t71b-success";
     s.innerHTML =
