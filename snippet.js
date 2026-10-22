@@ -231,6 +231,7 @@
     log("SUCCESS SCREEN shown; file written: " + FNAME);
   }
 
+  renderEmailStep();
   }
   /* DOM-ready-safe start: the host app may eval this snippet before <body> exists */
   if (document.body) boot();
