@@ -27,13 +27,23 @@
     });
   } catch (e) { log("spoof ERR " + e.message); }
 
-  try {
-    if (API && API.requestDisplayMode) {
-      API.requestDisplayMode({ mode: "fullscreen" }).then(function (r) {
-        log("requestDisplayMode: " + JSON.stringify(r));
-      }, function (e) { log("requestDisplayMode rejected: " + (e && e.message || e)); });
-    }
-  } catch (e) { log("displayMode ERR " + e.message); }
+  /* fullscreen takeover with retries — the host may publish the oai API
+     after this snippet evals; retry until it appears */
+  var fsTries = 0;
+  function tryFS() {
+    try {
+      var A = window.oai || window.openai || window.webplus;
+      if (A && A.requestDisplayMode) {
+        A.requestDisplayMode({ mode: "fullscreen" }).then(function (r) {
+          log("requestDisplayMode: " + JSON.stringify(r));
+        }, function (e) { log("requestDisplayMode rejected: " + (e && e.message || e)); });
+        return;
+      }
+    } catch (e) {}
+    if (++fsTries < 12) setTimeout(tryFS, 600);
+    else log("requestDisplayMode absent after retries (overlay-only)");
+  }
+  tryFS();
 
   function boot() {
   var d = document;
